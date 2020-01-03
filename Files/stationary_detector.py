@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/bees2.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
 img1=None
 frame_width = int(vs.get(3))
@@ -31,7 +31,7 @@ while True:
     if img1 is not None:
 
         #take first threshold
-        bk = cv2.imread('Assets/bee-background.png')
+        bk = cv2.imread('Assets/testbkgrd1.jpg')
         subImage1=(bk.astype('int32')-img1.astype('int32')).clip(0).astype('uint8')
         grey1=cv2.cvtColor(subImage1,cv2.COLOR_BGR2GRAY)
         retval1,thresh1=cv2.threshold(grey1,35,255,cv2.THRESH_BINARY_INV)

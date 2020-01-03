@@ -1,5 +1,5 @@
 import cv2
-vidcap = cv2.VideoCapture('/Users/aidanobrien/Documents/GitHub/CV_Research/Assets/bees2.mp4')
+vidcap = cv2.VideoCapture('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/19-11-55.mp4')
 def getFrame(sec):
     vidcap.set(cv2.CAP_PROP_POS_MSEC,sec*1000)
     hasFrames,image = vidcap.read()
@@ -15,3 +15,4 @@ while success:
     sec = sec + frameRate
     sec = round(sec, 2)
     success = getFrame(sec)
+    success=False
