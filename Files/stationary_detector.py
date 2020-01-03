@@ -7,8 +7,21 @@ frame_width = int(vs.get(3))
 frame_height = int(vs.get(4))
 
 def rem_movement(thresh,cnt1,cnt2):
-    cv2.drawContours(thresh, cnt1, -1, (255,255,255), -1)
-    cv2.imshow("thresh",thresh)
+    
+    for c1 in cnt1:
+        found=False
+        cntstill=[]
+        for c2 in cnt2:
+            m=cv2.matchShapes(c1,c2,2,0.0)
+            if m==0.0:
+                print("match")
+                found=True
+                break
+        if(found==False):
+            print("not found")
+            cntstill.append(c1)
+    cv2.drawContours(thresh, cntstill, -1, (255,255,255), -1)
+    #cv2.imshow("thresh",thresh)
     return thresh
 while True:
     hasFrames,img2=vs.read()
@@ -37,7 +50,7 @@ while True:
         
         thresh1=rem_movement(thresh1,contours1,contours2)
         #show treshold and video with contours
-        
+        cv2.imshow("threshold",thresh1)
         cv2.imshow("contours",img1)
 
         #increment img2
