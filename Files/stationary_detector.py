@@ -17,7 +17,7 @@ def rem_movement(img1,thresh,cnt1,cnt2):
         for c2 in cnt2:
             #match the contours
             m=cv2.matchShapes(c1,c2,2,0.0)
-            if m<=0.01:
+            if m<=0.02:
                 #if match, stop searching
                 found=True
                 print(found)
