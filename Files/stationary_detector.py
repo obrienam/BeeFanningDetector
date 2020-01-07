@@ -16,8 +16,8 @@ def rem_movement(img1,thresh,cnt1,cnt2):
         #loop through second contour list
         for c2 in cnt2:
             #match the contours
-            m=cv2.matchShapes(c1,c2,2,0.0)
-            if m<=0.02:
+            m=cv2.matchShapes(c1,c2,3,0.0)
+            if m<=0.01:
                 #if match, stop searching
                 found=True
                 print(found)
@@ -56,7 +56,7 @@ while True:
         #remove moved contours
         
         thresh1=rem_movement(img1,thresh1,contours1,contours2)
-        
+        cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
         #show treshold and video with contours
         cv2.imshow("threshold",thresh1)
         cv2.imshow("contours",img1)
