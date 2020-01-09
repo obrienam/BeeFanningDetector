@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
+
 img1=None
 frame_width = int(vs.get(3))
 frame_height = int(vs.get(4))
 
-def rem_movement(img1,thresh,cnt1,cnt2):
+def rem_movement(thresh,cnt1,cnt2):
     #loop through first conotur list
   
     cntmoving=[]
@@ -55,7 +56,7 @@ while True:
 
         #remove moved contours
         
-        thresh1=rem_movement(img1,thresh1,contours1,contours2)
+        thresh1=rem_movement(thresh1,contours1,contours2)
         cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
         #show treshold and video with contours
         cv2.imshow("threshold",thresh1)
