@@ -42,6 +42,8 @@ while True:
         grey1=cv2.cvtColor(subImage1,cv2.COLOR_BGR2GRAY)
         retval1,thresh1=cv2.threshold(grey1,35,255,cv2.THRESH_BINARY_INV)
         thresh1=255-thresh1
+        kernel=np.ones((5,5),np.uint8)
+        thresh1=cv2.erode(thresh1,kernel,iterations=1)
         #find first img2 contours
         im2, contours1, hierarchy1 = cv2.findContours(thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         #cv2.drawContours(img1, contours1, -1, (0,255,0), 3)
@@ -50,7 +52,8 @@ while True:
         subImage2=(bk.astype('int32')-img2.astype('int32')).clip(0).astype('uint8')
         grey2=cv2.cvtColor(subImage2,cv2.COLOR_BGR2GRAY)
         retval2,thresh2=cv2.threshold(grey2,35,255,cv2.THRESH_BINARY_INV)
-        
+        thresh2=255-thresh2
+        thresh2=cv2.erode(thresh2,kernel,iterations=1)
         #find second img2 contours
         im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
