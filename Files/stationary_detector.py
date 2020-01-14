@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 #windows file path
-vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+#vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 #mac file path
-#vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
 img1=None
 frame_width = int(vs.get(3))
@@ -20,8 +20,9 @@ def rem_movement(thresh,cnt1,cnt2):
         for c2 in cnt2:
             #match the contours
             m=cv2.matchShapes(c1,c2,3,0.0)
-            if m<=0.01:
+            if m<=0.007 and c1.size>=425 and c1.size<=460:
                 #if match, stop searching
+                print(c1.size)
                 found=True
                 break
         if(found==False):
@@ -39,9 +40,9 @@ while True:
 
         #take first threshold
         #windows file path
-        bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+        #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
         #mac file path
-        #bk = cv2.imread('Assets/sharpbackground.jpg')
+        bk = cv2.imread('Assets/sharpbackground.jpg')
         subImage1=(bk.astype('int32')-img1.astype('int32')).clip(0).astype('uint8')
         grey1=cv2.cvtColor(subImage1,cv2.COLOR_BGR2GRAY)
         retval1,thresh1=cv2.threshold(grey1,35,255,cv2.THRESH_BINARY_INV)
