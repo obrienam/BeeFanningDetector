@@ -1,9 +1,10 @@
 import cv2
 import numpy as np
+import time
 #windows file path
-#vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/12-51-01.mp4")
 #mac file path
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+#vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
 img1=None
 frame_width = int(vs.get(3))
@@ -19,8 +20,8 @@ def rem_movement(thresh,cnt1,cnt2):
         #loop through second contour list
         for c2 in cnt2:
             #match the contours
-            m=cv2.matchShapes(c1,c2,3,0.0)
-            if m<=0.007 and c1.size>=425 and c1.size<=460:
+            m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
+            if c1.size>150 and m <= 0.01:
                 #if match, stop searching
                 print(c1.size)
                 found=True
@@ -31,6 +32,22 @@ def rem_movement(thresh,cnt1,cnt2):
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh
+
+def rem_shadows(img):
+    rgb_planes = cv2.split(img)
+    result_norm_planes=[]
+    result_planes=[]
+    for plane in rgb_planes:
+        dilated_img=cv2.dilate(plane,np.ones((7,7),np.uint8))
+        bg_img = cv2.medianBlur(dilated_img, 21)
+        diff_img=255-cv2.absdiff(plane,bg_img)
+        norm_img=cv2.normalize(diff_img,None,alpha=0,beta=255,norm_type=cv2.NORM_MINMAX,dtype=cv2.CV_8UC1)
+        result_norm_planes.append(norm_img)
+        result_planes.append(diff_img)
+    result=cv2.merge(result_planes)
+    return result
+    
+bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
 while True:
     hasFrames,img2=vs.read()
     if (hasFrames==False):
@@ -40,9 +57,11 @@ while True:
 
         #take first threshold
         #windows file path
-        #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+        
         #mac file path
-        bk = cv2.imread('Assets/sharpbackground.jpg')
+
+        #bk = rem_shadows(cv2.imread('Assets/sharpbackground.jpg'))
+    
         subImage1=(bk.astype('int32')-img1.astype('int32')).clip(0).astype('uint8')
         grey1=cv2.cvtColor(subImage1,cv2.COLOR_BGR2GRAY)
         retval1,thresh1=cv2.threshold(grey1,35,255,cv2.THRESH_BINARY_INV)
@@ -72,7 +91,6 @@ while True:
 
         #increment img2
         img1=img2
-
     else:    
         img1=img2
     key=cv2.waitKey(1) & 0xFF
