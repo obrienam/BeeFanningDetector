@@ -82,14 +82,14 @@ while True:
         im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         #remove moved contours and count fanning bees
-        thresh1,curFan=rem_movement(img1,contours1,contours2)
+        thresh1,curFan=rem_movement(thresh1,contours1,contours2)
         #show treshold and video with contours
         cv2.imshow("threshold",thresh1)
         #write current number of fanning bees
         cv2.putText(img1, "Fanning Bees: {}".format(curFan), (10, 20),
 		    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         #draw every contour on the image frame for testing purposes
-        cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
+        #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
         cv2.imshow("contours",img1)
 
         #increment img2
