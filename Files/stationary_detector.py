@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 import time
 #windows file path
-vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/12-51-01.mp4")
+#vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
 #mac file path
-#vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
 
 img1=None
 frame_width = int(vs.get(3))
@@ -12,7 +12,7 @@ frame_height = int(vs.get(4))
 
 def rem_movement(thresh,cnt1,cnt2):
     #loop through first conotur list
-  
+    numFan=0
     cntmoving=[]
     for c1 in cnt1:
         found=False
@@ -21,9 +21,9 @@ def rem_movement(thresh,cnt1,cnt2):
         for c2 in cnt2:
             #match the contours
             m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
-            if c1.size>150 and m <= 0.01:
+            if c1.size>460 and c1.size<480 and m <= 0.01:
                 #if match, stop searching
-                print(c1.size)
+                numFan=numFan+1
                 found=True
                 break
         if(found==False):
@@ -31,7 +31,7 @@ def rem_movement(thresh,cnt1,cnt2):
             cntmoving.append(c1)
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
-    return thresh
+    return thresh,numFan
 
 def rem_shadows(img):
     rgb_planes = cv2.split(img)
@@ -47,7 +47,7 @@ def rem_shadows(img):
     result=cv2.merge(result_planes)
     return result
     
-bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
 while True:
     hasFrames,img2=vs.read()
     if (hasFrames==False):
@@ -81,12 +81,15 @@ while True:
         #find second img2 contours
         im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        #remove moved contours
-        
-        thresh1=rem_movement(thresh1,contours1,contours2)
-        cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
+        #remove moved contours and count fanning bees
+        thresh1,curFan=rem_movement(img1,contours1,contours2)
         #show treshold and video with contours
         cv2.imshow("threshold",thresh1)
+        #write current number of fanning bees
+        cv2.putText(img1, "Fanning Bees: {}".format(curFan), (10, 20),
+		    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        #draw every contour on the image frame for testing purposes
+        cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
         cv2.imshow("contours",img1)
 
         #increment img2
