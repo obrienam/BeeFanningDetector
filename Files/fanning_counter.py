@@ -46,18 +46,19 @@ def rem_movement(thresh,cnt1,cnt2,cnt_fan):
 #main driver function
 def main():
     #windows video file path
-    #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
     img1=None
     frame_width = int(vs.get(3))
     frame_height = int(vs.get(4))
 
     #initialize fanning bee reference contour
-    fan=cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_fan.jpg")
-    b_fan=cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_bkgrnd.jpg")
+    fan=cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_fan.jpg")
+    b_fan=cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_bk.jpg")
     thresh_fan=to_thresh(fan,b_fan)
+    cv2.imwrite("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_tresh.jpg",thresh_fan)
     im, cnt_fan, hier_fan = cv2.findContours(thresh_fan, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)    
 
     #loop through video frames 
@@ -68,9 +69,9 @@ def main():
         
         if img1 is not None:
             #mac file path
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             #bk = rem_shadows(cv2.imread('Assets/sharpbackground.jpg'))
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            #bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             #take first threshold
             thresh1=to_thresh(img1,bk)
             #find first set of frame contours
