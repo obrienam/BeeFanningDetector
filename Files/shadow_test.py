@@ -6,12 +6,13 @@ def to_thresh(img,bk):
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY_INV)
     thresh=255-thresh
-    #kernel=np.ones((5,5),np.uint8)
-    #thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
+    kernel=np.ones((5,5),np.uint8)
+    thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
-img = cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_fan.jpg",-1)
-
+img = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/ref_5.jpg")
+bk = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/bk_5.jpg")
+'''
 rgb_planes = cv2.split(img)
 
 result_planes = []
@@ -34,5 +35,6 @@ bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/whi
 thresh=to_thresh(img,bk)
 im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 cv2.drawContours(img, contours, -1, (0,255,0), 3)
-cv2.imwrite('img_contours.jpg',img)
-cv2.imwrite('thresh.jpg', thresh)
+'''
+thresh=to_thresh(img,bk)
+cv2.imwrite('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/thresh_5.jpg', thresh)

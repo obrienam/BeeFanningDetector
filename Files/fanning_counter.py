@@ -12,9 +12,25 @@ def to_thresh(img,bk):
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
+#compare current bee contours with fanning bee reference contours
+#and find match.
+def detect_fanning(c1):
+    for i in range(3):
+        fname="C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/thresh_"+str(i+1)+".jpg"
+        f=cv2.imread(fname)
+       
+        f=cv2.cvtColor(f,cv2.COLOR_BGR2GRAY)
+        im3, cnts2, hierarchy2 = cv2.findContours(f, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        for c2 in cnts2:
+            m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
+            if m<=0.3:
+                print(fname)
+                return m
+    return 1000
+
 #remove moving/not fanning bees from threshold frame
 #and count total number of fanning bees
-def rem_movement(thresh,cnt1,cnt2,cnt_fan):
+def rem_movement(thresh,cnt1,cnt2):
     #loop through first conotur list
     numFan=0
     cntmoving=[]
@@ -26,12 +42,13 @@ def rem_movement(thresh,cnt1,cnt2,cnt_fan):
             
             #match the contours
             m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
-            if c1.size>460 and c1.size<480 and m <= 0.01:
+            if c1.size>460 and c1.size<700 and m <= 0.01:
                 #if match, stop searching
-                m2=cv2.matchShapes(c1,cnt_fan[0],cv2.CONTOURS_MATCH_I1,0.0)
+                m2=detect_fanning(c1)
                 if m2 <= 0.3:
                     print("fan")
                     numFan=numFan+1
+                    #cntmoving.append(c1)
                 else:
                     cntmoving.append(c1)
                 found=True
@@ -46,24 +63,13 @@ def rem_movement(thresh,cnt1,cnt2,cnt_fan):
 #main driver function
 def main():
     #windows video file path
-    #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
     img1=None
     frame_width = int(vs.get(3))
-    frame_height = int(vs.get(4))
-
-    #initialize fanning bee reference contour
-    #fan=cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_fan.jpg")
-    #b_fan=cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_bk.jpg")
-
-    fan=cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/new_fan.jpg")
-    b_fan=cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/new_bk.jpg")
-    thresh_fan=to_thresh(fan,b_fan)
-    #cv2.imwrite("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/new_tresh.jpg",thresh_fan)
-    cv2.imwrite("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/new_tresh.jpg",thresh_fan)
-    im, cnt_fan, hier_fan = cv2.findContours(thresh_fan, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)    
+    frame_height = int(vs.get(4)) 
 
     #loop through video frames 
     while True:
@@ -73,9 +79,9 @@ def main():
         
         if img1 is not None:
             #mac file path
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
-           
             #bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+           
+            bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             #take first threshold
             thresh1=to_thresh(img1,bk)
             #find first set of frame contours
@@ -88,7 +94,7 @@ def main():
             im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
             #remove contours of moving/non-fanning bees and count fanning bees
-            thresh1,curFan=rem_movement(thresh1,contours1,contours2,cnt_fan)
+            thresh1,curFan=rem_movement(thresh1,contours1,contours2)
             #show treshold and video
             cv2.imshow("threshold",thresh1)
             #write current number of fanning bees to current frame
@@ -106,6 +112,7 @@ def main():
         #if q is pressed, stop loop
         if key == ord("q"):
             break
+        #time.sleep(1)
     #close all windows and video stream    
     vs.release()
     cv2.destroyAllWindows()
