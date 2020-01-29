@@ -22,11 +22,40 @@ def detect_fanning(c1):
         f=cv2.cvtColor(f,cv2.COLOR_BGR2GRAY)
         im3, cnts2, hierarchy2 = cv2.findContours(f, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         for c2 in cnts2:
+            a1=cv2.contourArea(c1)
+            a2=cv2.contourArea(c2)
+            #compare the two contour areas
+            
             m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
             if m<=0.3:
-                print(fname)
-                return m
+                a=a1/a2
+                if(a<=1.1):
+                    return m
+                else:
+                    continue
     return 1000
+
+#Compare the area, central point, and shape
+#of two contours to determine if the bee was stationary.
+def cmpContours(c1,c2):
+    match=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
+
+    mom1=cv2.moments(c1)
+    cx1 = int(mom1["m10"] / mom1["m00"])
+    cy1 = int(mom1["m01"] / mom1["m00"])
+    mom2=cv2.moments(c2)
+    cx2 = int(mom2["m10"] / mom2["m00"])
+    cy2 = int(mom2["m01"] / mom2["m00"])
+    cx=cx1/cx2
+    cy=cy1/cy2
+
+    a1=cv2.contourArea(c1)
+    a2=cv2.contourArea(c2)
+    a=a1/a2
+
+    if (cx <= 1.1 and cy <= 1.1 and a < 1.1 and match <= 0.01):
+        return True
+    return False
 
 #remove moving/not fanning bees from threshold frame
 #and count total number of fanning bees
@@ -39,15 +68,21 @@ def rem_movement(thresh,cnt1,cnt2):
         
         #loop through second contour list
         for c2 in cnt2:
-            
-            #match the contours
-            m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
-            if c1.size>460 and c1.size<700 and m <= 0.01:
+            #check if bee was stationary and was in the 
+            #size range of a staionary bee
+            if c1.size>460 and c1.size<630 and cmpContours(c1,c2):
                 #if match, stop searching
+                #print(a)
                 m2=detect_fanning(c1)
+                
                 if m2 <= 0.3:
-                    print("fan")
-                    numFan=numFan+1
+                    #print("fan")
+                    if(c1.size > 530 and c1.size < 635):
+                        #print(3)
+                        numFan = numFan+3
+                    elif(c1.size>460):
+                        #print(1)
+                        numFan = numFan+1
                     #cntmoving.append(c1)
                 else:
                     cntmoving.append(c1)
