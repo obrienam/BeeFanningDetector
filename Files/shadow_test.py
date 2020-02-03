@@ -10,7 +10,7 @@ def to_thresh(img,bk):
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
-img = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/coins.png")
+img = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/test_frame.png")
 bk = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/bk_3_2.jpg")
 gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 ret,thresh=cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
@@ -21,7 +21,7 @@ opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 sure_bg = cv2.dilate(opening,kernel,iterations=3)
 # Finding sure foreground area
 dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
-ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+ret, sure_fg = cv2.threshold(dist_transform,0.3*dist_transform.max(),255,0)
 
 # Finding unknown region
 sure_fg = np.uint8(sure_fg)
