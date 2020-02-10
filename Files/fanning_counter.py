@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 
+d_frames={}
 #convert input frame to threshold using background subtraction
 def to_thresh(img,bk):
     
@@ -39,7 +40,7 @@ def detect_fanning(c1):
 
 #Compare the area, central point, and shape
 #of two contours to determine if the bee was stationary.
-def cmpContours(c1,c2):
+def cmpContours(frame,c1,c2):
     match=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
 
     mom1=cv2.moments(c1)
@@ -54,11 +55,34 @@ def cmpContours(c1,c2):
     a1=cv2.contourArea(c1)
     a2=cv2.contourArea(c2)
     a=a1/a2
-
+    detected=False
+    for c in range(cx1-10,cx1+10):
+        if(d_frames.get(c) is not None):
+            x,y,w,h=cv2.boundingRect(c1)
+            frame=frame[y:y+h,x:x+w]
+            d_frames[c].append(frame)
+            detected=True
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
         and a <= 1.0 and a >= 0.95 and a1 < 10000):
-        
+        if(d_frames.get(cx1) is None and detected==False):
+            print("recognized" + str(cx1))
+            x,y,w,h=cv2.boundingRect(c1)
+            frame=frame[y:y+h,x:x+w]
+            d_frames[cx1]=[frame]
+        '''
+        elif(d_frames.get(cx1) is not None):
+            print("append" + str(cx1))
+            x,y,w,h=cv2.boundingRect(c2)
+            frame=frame[y:y+h,x:x+w]
+            d_frames[cx1].append(frame)
+        else:
+            print("first " + str(cx1))
+            x,y,w,h=cv2.boundingRect(c1)
+            frame=frame[y:y+h,x:x+w]
+            d_frames[cx1]=[frame]
+        '''
         return True
+    
     return False
 
 #remove moving/not fanning bees from threshold frame
@@ -74,7 +98,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
         for c2 in cnt2:
             #check if bee was stationary and was in the 
             #size range of a staionary bee
-            if c1.size>460 and cmpContours(c1,c2):
+            if c1.size>460 and cmpContours(im,c1,c2):
                 #if match, stop searching
                 #Experimental fanning code to be completed later
                 '''
@@ -105,6 +129,21 @@ def rem_movement(im,thresh,cnt1,cnt2):
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan
+
+def make_vids(d_frames):
+    i = 0
+   
+    for key in d_frames:
+        frames=d_frames[key]
+        if(len(frames)>1):
+            
+            height, width, layers = frames[0].shape
+            size = (width,height)
+            out = cv2.VideoWriter('out_'+str(key)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 25, (640,480))
+            for f in frames:
+                out.write(f)
+            out.release()
+            i=i+1
 
 #main driver function
 def main():
@@ -166,6 +205,7 @@ def main():
         if key == ord("q"):
             break
         #time.sleep(1)
+    make_vids(d_frames)
     #close all windows and video stream    
     vs.release()
     cv2.destroyAllWindows()
