@@ -3,6 +3,7 @@ import numpy as np
 import time
 
 d_frames={}
+rects={}
 #convert input frame to threshold using background subtraction
 def to_thresh(img,bk):
     
@@ -56,19 +57,21 @@ def cmpContours(frame,c1,c2):
     a2=cv2.contourArea(c2)
     a=a1/a2
     detected=False
-    for c in range(cx1-10,cx1+10):
-        if(d_frames.get(c) is not None):
-            x,y,w,h=cv2.boundingRect(c1)
-            frame=frame[y:y+h,x:x+w]
-            d_frames[c].append(frame)
-            detected=True
+    
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
-        and a <= 1.0 and a >= 0.95 and a1 < 10000):
+        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.1):
+        for c in range(cx1-20,cx1+20):
+            if(d_frames.get(c) is not None):
+                x,y,w,h=rects.get(c)
+                frame=frame[y:y+h,x:x+w]
+                d_frames[c].append(frame)
+                detected=True
         if(d_frames.get(cx1) is None and detected==False):
-            print("recognized" + str(cx1))
+            #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             frame=frame[y:y+h,x:x+w]
             d_frames[cx1]=[frame]
+            rects[cx1]=[x,y,w,h]
         '''
         elif(d_frames.get(cx1) is not None):
             print("append" + str(cx1))
@@ -139,7 +142,7 @@ def make_vids(d_frames):
             
             height, width, layers = frames[0].shape
             size = (width,height)
-            out = cv2.VideoWriter('out_'+str(key)+'.mp4',cv2.VideoWriter_fourcc(*'mp4v'), 25, (640,480))
+            out = cv2.VideoWriter('../Assets/stationary_bees/out_'+str(key)+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
             for f in frames:
                 out.write(f)
             out.release()
