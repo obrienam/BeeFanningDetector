@@ -64,7 +64,7 @@ def cmpContours(frame,c1,c2):
             for cY in range(cy1-20,cy1+20):
                 if(d_frames.get(tuple([cX,cY])) is not None):
                     x,y,w,h=rects.get(tuple([cX,cY]))
-                    cv2.drawContours(frame, c1, -1, (0,255,0), 3)
+                    #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     frame=frame[y-20:y+h+20,x-20:x+w+20]
                     d_frames[cX,cY].append(frame)
                     detected=True
@@ -75,18 +75,7 @@ def cmpContours(frame,c1,c2):
             frame=frame[y-20:y+h+20,x-20:x+w+20]
             d_frames[cx1,cy1]=[frame]
             rects[cx1,cy1]=[x,y,w,h]
-        '''
-        elif(d_frames.get(cx1) is not None):
-            print("append" + str(cx1))
-            x,y,w,h=cv2.boundingRect(c2)
-            frame=frame[y:y+h,x:x+w]
-            d_frames[cx1].append(frame)
-        else:
-            print("first " + str(cx1))
-            x,y,w,h=cv2.boundingRect(c1)
-            frame=frame[y:y+h,x:x+w]
-            d_frames[cx1]=[frame]
-        '''
+        
         return True
     
     return False
