@@ -68,6 +68,7 @@ def cmpContours(frame,c1,c2):
                     frame=frame[y-20:y+h+20,x-20:x+w+20]
                     d_frames[cX,cY].append(frame)
                     detected=True
+
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
