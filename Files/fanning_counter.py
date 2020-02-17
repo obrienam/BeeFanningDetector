@@ -60,18 +60,20 @@ def cmpContours(frame,c1,c2):
     
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
         and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.1):
-        for c in range(cx1-20,cx1+20):
-            if(d_frames.get(c) is not None):
-                x,y,w,h=rects.get(c)
-                frame=frame[y:y+h,x:x+w]
-                d_frames[c].append(frame)
-                detected=True
-        if(d_frames.get(cx1) is None and detected==False):
+        for cX in range(cx1-20,cx1+20):
+            for cY in range(cy1-20,cy1+20):
+                if(d_frames.get(tuple([cX,cY])) is not None):
+                    x,y,w,h=rects.get(tuple([cX,cY]))
+                    #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
+                    frame=frame[y:y+h,x:x+w]
+                    d_frames[cX,cY].append(frame)
+                    detected=True
+        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             frame=frame[y:y+h,x:x+w]
-            d_frames[cx1]=[frame]
-            rects[cx1]=[x,y,w,h]
+            d_frames[cx1,cy1]=[frame]
+            rects[cx1,cy1]=[x,y,w,h]
         '''
         elif(d_frames.get(cx1) is not None):
             print("append" + str(cx1))
@@ -138,11 +140,11 @@ def make_vids(d_frames):
    
     for key in d_frames:
         frames=d_frames[key]
-        if(len(frames)>1):
+        if(len(frames)>15):
             
             height, width, layers = frames[0].shape
             size = (width,height)
-            out = cv2.VideoWriter('../Assets/stationary_bees/out_'+str(key)+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
+            out = cv2.VideoWriter('../Assets/stationary_bees/out_'+str(len(frames))+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
             for f in frames:
                 out.write(f)
             out.release()
