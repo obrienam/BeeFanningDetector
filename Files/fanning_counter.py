@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import time
-
+import random as rng
 d_frames={}
 rects={}
 #convert input frame to threshold using background subtraction
@@ -59,7 +59,7 @@ def cmpContours(frame,c1,c2):
     detected=False
     
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
-        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.1):
+        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-20,cy1+20):
                 if(d_frames.get(tuple([cX,cY])) is not None):
@@ -140,15 +140,49 @@ def make_vids(d_frames):
             out.release()
             i=i+1
 
+def wshed(image,bk):
+    conts=[]
+    shifted=cv2.pyrMeanShiftFiltering(image,21,51)
+    gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.threshold(gray, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    thresh=255-thresh
+    cv2.imshow("Thresh", thresh)
+
+    D = ndimage.distance_transform_edt(thresh)
+    localMax = peak_local_max(D, indices=False, min_distance=20,
+        labels=thresh)
+
+    markers = ndimage.label(localMax, structure=np.ones((3, 3)))[0]
+    labels = watershed(-D, markers, mask=thresh)
+
+    for label in np.unique(labels):
+        
+        # if the label is zero, we are examining the 'background'
+        # so simply ignore it
+        if label == 0:
+            continue
+        # otherwise, allocate memory for the label region and draw
+        # it on the mask
+        mask = np.zeros(gray.shape, dtype="uint8")
+        mask[labels == label] = 255
+        # detect contours in the mask and grab the largest one
+        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        c = max(cnts, key=cv2.contourArea)
+        conts.append(c)
+    return conts
 #main driver function
 def main():
     #windows video file path
-    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
     #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
     img1=None
    
+    
 
     #loop through video frames 
 
@@ -156,6 +190,8 @@ def main():
         hasFrames,img2=vs.read()
         if (hasFrames==False):
             break
+        #img2=cv2.cvtColor(img2,cv2.COLOR_BGR2HSV)
+        
         
         if img1 is not None:
             #mac file path
@@ -170,6 +206,7 @@ def main():
 
             #take first threshold
             thresh1=to_thresh(img1,bk)
+            
             #find first set of frame contours
             im2, contours1, hierarchy1 = cv2.findContours(thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
             #cv2.drawContours(img1, contours1, -1, (0,255,0), 3)
@@ -181,6 +218,8 @@ def main():
 
             #remove contours of moving/non-fanning bees and count fanning bees
             thresh1,curFan=rem_movement(img1,thresh1,contours1,contours2)
+            
+
             #show treshold and video
             cv2.imshow("threshold",thresh1)
             #write current number of fanning bees to current frame
