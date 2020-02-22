@@ -59,7 +59,7 @@ def cmpContours(frame,c1,c2):
     detected=False
     
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
-        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
+        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.1):
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-20,cy1+20):
                 if(d_frames.get(tuple([cX,cY])) is not None):
@@ -86,6 +86,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
     #loop through first conotur list
     numFan=0
     cntmoving=[]
+    imc=im
     for c1 in cnt1:
         found=False
         
@@ -116,6 +117,13 @@ def rem_movement(im,thresh,cnt1,cnt2):
                 cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
                 '''
                 found=True
+                imc=im.copy()
+                ell=cv2.fitEllipse(c1)
+                (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
+                if Ma >= 43 and Ma <= 46:
+                    cv2.ellipse(imc,ell,(0,255,0),2)
+                
+                    print(Ma,ma)
                 #break
         if(found==False):
             #if not found, append it to moving contours
@@ -123,7 +131,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
     
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
-    return thresh,numFan
+    return thresh,numFan,imc
 
 def make_vids(d_frames):
     i = 0
@@ -176,9 +184,9 @@ def wshed(image,bk):
 #main driver function
 def main():
     #windows video file path
-    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
 
     img1=None
    
@@ -195,9 +203,9 @@ def main():
         
         if img1 is not None:
             #mac file path
-            #bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
            
-            bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
             
             bk=bk[75:75+315,0:0+637]
@@ -217,7 +225,7 @@ def main():
             im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
             #remove contours of moving/non-fanning bees and count fanning bees
-            thresh1,curFan=rem_movement(img1,thresh1,contours1,contours2)
+            thresh1,curFan,imc=rem_movement(img1,thresh1,contours1,contours2)
             
 
             #show treshold and video
@@ -228,6 +236,7 @@ def main():
             #draw every contour on the current frame for testing purposes
             #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
             cv2.imshow("contours",img1)
+            cv2.imshow("Ellipse",imc)
             
             #increment img2
             img1=img2
@@ -238,7 +247,8 @@ def main():
         #if q is pressed, stop loop
         if key == ord("q"):
             break
-        #time.sleep(1)
+        
+        #time.sleep(.5)
     make_vids(d_frames)
     #close all windows and video stream    
     vs.release()
