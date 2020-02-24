@@ -4,6 +4,7 @@ import time
 import random as rng
 d_frames={}
 rects={}
+times = 0
 #convert input frame to threshold using background subtraction
 def to_thresh(img,bk):
     
@@ -57,23 +58,49 @@ def cmpContours(frame,c1,c2):
     a2=cv2.contourArea(c2)
     a=a1/a2
     detected=False
+
     
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
         and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
-        for cX in range(cx1-20,cx1+20):
-            for cY in range(cy1-20,cy1+20):
+        eframe=frame.copy()
+        ell=cv2.fitEllipse(c1)
+        (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
+        cv2.ellipse(eframe,ell,(0,255,0),2)
+        low=0
+        high=0
+        if(cx1<20):
+            low = cx1
+            high = 40-cx1
+        else:
+            low=20
+            high=20
+        if(cy1<20):
+            low = cy1
+            high = 40-cy1
+        else:
+            low=20
+            high=20
+        for cX in range(cx1-low,cx1+high):
+            for cY in range(cy1-low,cy1+high):
                 if(d_frames.get(tuple([cX,cY])) is not None):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                    frame=frame[y-20:y+h+20,x-20:x+w+20]
-                    d_frames[cX,cY].append(frame)
+                    eframe=eframe[y-low:y+h+high,x-low:x+w+high]
+                    if (Ma >= 43 and Ma <= 46) or (Ma >= 64 and Ma <= 66):
+                        print(Ma,ma)
+                        
+                    d_frames[cX,cY].append(eframe)
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
-            frame=frame[y-20:y+h+20,x-20:x+w+20]
-            d_frames[cx1,cy1]=[frame]
+            eframe=eframe[y-low:y+h+high,x-low:x+w+high]
+            if (Ma >= 43 and Ma <= 46) or (Ma >= 65 and Ma <= 66):
+                print(Ma,ma)
+                
+            d_frames[cx1,cy1]=[eframe]
+            
             rects[cx1,cy1]=[x,y,w,h]
         
         return True
@@ -86,6 +113,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
     #loop through first conotur list
     numFan=0
     cntmoving=[]
+    imc=im
     for c1 in cnt1:
         found=False
         
@@ -93,7 +121,12 @@ def rem_movement(im,thresh,cnt1,cnt2):
         for c2 in cnt2:
             #check if bee was stationary and was in the 
             #size range of a staionary bee
+            imc=im.copy()
+            
+                
+                
             if c1.size>460 and cmpContours(im,c1,c2):
+                #print(Ma,ma)
                 #if match, stop searching
                 #Experimental fanning code to be completed later
                 '''
@@ -116,6 +149,8 @@ def rem_movement(im,thresh,cnt1,cnt2):
                 cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
                 '''
                 found=True
+                
+                   
                 #break
         if(found==False):
             #if not found, append it to moving contours
@@ -123,7 +158,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
     
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
-    return thresh,numFan
+    return thresh,numFan,imc
 
 def make_vids(d_frames):
     i = 0
@@ -187,6 +222,7 @@ def main():
     #loop through video frames 
 
     while True:
+        global times
         hasFrames,img2=vs.read()
         if (hasFrames==False):
             break
@@ -217,7 +253,7 @@ def main():
             im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
             #remove contours of moving/non-fanning bees and count fanning bees
-            thresh1,curFan=rem_movement(img1,thresh1,contours1,contours2)
+            thresh1,curFan,imc=rem_movement(img1,thresh1,contours1,contours2)
             
 
             #show treshold and video
@@ -234,10 +270,14 @@ def main():
         else:    
             img1=img2
             img1=img1[75:75+315,0:0+637]
-        key=cv2.waitKey(1) & 0xFF
-        #if q is pressed, stop loop
-        if key == ord("q"):
-            break
+        if times > 0:
+            key=cv2.waitKey(1) & 0xFF
+            #if q is pressed, stop loop
+            if key == ord("c"):
+                continue
+            if key == ord("q"):
+                break
+        times = times + 1
         #time.sleep(1)
     make_vids(d_frames)
     #close all windows and video stream    
