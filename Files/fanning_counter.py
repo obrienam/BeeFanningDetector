@@ -66,39 +66,31 @@ def cmpContours(frame,c1,c2):
         ell=cv2.fitEllipse(c1)
         (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
         cv2.ellipse(eframe,ell,(0,255,0),2)
-        low=0
-        high=0
-        if(cx1<20):
-            low = cx1
-            high = 40-cx1
-        else:
-            low=20
-            high=20
-        if(cy1<20):
-            low = cy1
-            high = 40-cy1
-        else:
-            low=20
-            high=20
-        for cX in range(cx1-low,cx1+high):
-            for cY in range(cy1-low,cy1+high):
-                if(d_frames.get(tuple([cX,cY])) is not None):
+        
+        
+        
+        cv2.imshow("ellipse",eframe) 
+        for cX in range(cx1-20,cx1+20):
+            for cY in range(cy1-20,cy1+20):
+                if(d_frames.get(tuple([cX,cY])) is not None and 
+                (Ma>=42 and Ma<=49)):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                    eframe=eframe[y-low:y+h+high,x-low:x+w+high]
-                    if (Ma >= 43 and Ma <= 46) or (Ma >= 64 and Ma <= 66):
-                        print(Ma,ma)
+                    eframe=eframe[y-20:y+h+20,x-20:x+w+20]
+                    print(Ma,ma)
+                    
                         
                     d_frames[cX,cY].append(eframe)
                     detected=True
 
-        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False):
+        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
+        (Ma>=42 and Ma<=49)):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
-            eframe=eframe[y-low:y+h+high,x-low:x+w+high]
-            if (Ma >= 43 and Ma <= 46) or (Ma >= 65 and Ma <= 66):
-                print(Ma,ma)
-                
+            eframe=eframe[y-20:y+h+20,x-20:x+w+20]
+            
+            print(Ma,ma)
+              
             d_frames[cx1,cy1]=[eframe]
             
             rects[cx1,cy1]=[x,y,w,h]
@@ -121,37 +113,9 @@ def rem_movement(im,thresh,cnt1,cnt2):
         for c2 in cnt2:
             #check if bee was stationary and was in the 
             #size range of a staionary bee
-            imc=im.copy()
-            
-                
-                
+            imc=im.copy() 
             if c1.size>460 and cmpContours(im,c1,c2):
-                #print(Ma,ma)
-                #if match, stop searching
-                #Experimental fanning code to be completed later
-                '''
-                m2=detect_fanning(c1)
-                
-                if m2 <= 0.3:
-                    #print("fan")
-                    if(c1.size > 530 and c1.size < 635):
-                        #print(3)
-                        numFan = numFan+3
-                    elif(c1.size>460):
-                        #print(1)
-                        numFan = numFan+1
-                    #cntmoving.append(c1)
-                else:
-                    cntmoving.append(c1)
-                
-                rect=cv2.boundingRect(c1)
-                x,y,w,h=rect
-                cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
-                '''
                 found=True
-                
-                   
-                #break
         if(found==False):
             #if not found, append it to moving contours
             cntmoving.append(c1)
@@ -165,11 +129,12 @@ def make_vids(d_frames):
    
     for key in d_frames:
         frames=d_frames[key]
-        if(len(frames)>15):
+        height, width, layers = frames[0].shape
+        if(len(frames)>1 and (width is not 0 and height is not 0)):
             
-            height, width, layers = frames[0].shape
+           
             size = (width,height)
-            out = cv2.VideoWriter('../Assets/stationary_bees/out_'+str(len(frames))+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
+            out = cv2.VideoWriter('../Assets/stationary_bees/fan_'+str(key)+", "+str(len(frames))+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
             for f in frames:
                 out.write(f)
             out.release()
@@ -259,7 +224,7 @@ def main():
             #show treshold and video
             cv2.imshow("threshold",thresh1)
             #write current number of fanning bees to current frame
-            cv2.putText(img1, "Fanning Bees: {}".format(curFan), (10, 20),
+            cv2.putText(img1, "Total Fanning Bees Detected: {}".format(len(d_frames)), (10, 20),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             #draw every contour on the current frame for testing purposes
             #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
