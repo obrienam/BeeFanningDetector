@@ -66,30 +66,31 @@ def cmpContours(frame,c1,c2):
         ell=cv2.fitEllipse(c1)
         (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
         cv2.ellipse(eframe,ell,(0,255,0),2)
-        
+        print(Ma,ma)
         
         
         cv2.imshow("ellipse",eframe) 
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-20,cy1+20):
+                
                 if(d_frames.get(tuple([cX,cY])) is not None and 
-                (Ma>=42 and Ma<=49)):
+                (Ma>=42 and Ma<=49)and ma/Ma>=1.5):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-                    print(Ma,ma)
+                    
                     
                         
                     d_frames[cX,cY].append(eframe)
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        (Ma>=42 and Ma<=49)):
+        (Ma>=42 and Ma<=49)and ma/Ma>=1.5):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
             
-            print(Ma,ma)
+            #print(Ma,ma)
               
             d_frames[cx1,cy1]=[eframe]
             
@@ -176,7 +177,7 @@ def wshed(image,bk):
 #main driver function
 def main():
     #windows video file path
-    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
     #mac video file path
     #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
@@ -201,8 +202,8 @@ def main():
             bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
             
-            bk=bk[75:75+315,0:0+637]
-            img2=img2[75:75+315,0:0+637]
+            bk=bk[75:75+260,0:0+640]
+            img2=img2[75:75+260,0:0+640]
             
 
             #take first threshold
@@ -224,8 +225,8 @@ def main():
             #show treshold and video
             cv2.imshow("threshold",thresh1)
             #write current number of fanning bees to current frame
-            cv2.putText(img1, "Total Fanning Bees Detected: {}".format(len(d_frames)), (10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            #cv2.putText(img1, "Total Fanning Bees Detected: {}".format(len(d_frames)), (10, 20),
+                #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             #draw every contour on the current frame for testing purposes
             #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
             cv2.imshow("contours",img1)
@@ -234,7 +235,7 @@ def main():
             img1=img2
         else:    
             img1=img2
-            img1=img1[75:75+315,0:0+637]
+            img1=img1[75:75+260,0:0+640]
         if times > 0:
             key=cv2.waitKey(1) & 0xFF
             #if q is pressed, stop loop
