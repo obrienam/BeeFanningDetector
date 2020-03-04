@@ -66,7 +66,7 @@ def cmpContours(frame,c1,c2):
         ell=cv2.fitEllipse(c1)
         (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
         cv2.ellipse(eframe,ell,(0,255,0),2)
-        print(Ma,ma)
+        
         
         
         cv2.imshow("ellipse",eframe) 
@@ -74,22 +74,22 @@ def cmpContours(frame,c1,c2):
             for cY in range(cy1-20,cy1+20):
                 
                 if(d_frames.get(tuple([cX,cY])) is not None and 
-                (Ma>=42 and Ma<=49)and ma/Ma>=1.5):
+                (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and (angle >125 or angle <90)):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-                    
+                    print(angle)
                     
                         
                     d_frames[cX,cY].append(eframe)
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        (Ma>=42 and Ma<=49)and ma/Ma>=1.5):
+        (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and (angle > 125 or angle <90)):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-            
+            print(angle)
             #print(Ma,ma)
               
             d_frames[cx1,cy1]=[eframe]
@@ -177,7 +177,7 @@ def wshed(image,bk):
 #main driver function
 def main():
     #windows video file path
-    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
     #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
 
