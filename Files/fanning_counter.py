@@ -135,8 +135,10 @@ def make_vids(d_frames):
             
            
             size = (width,height)
-            out = cv2.VideoWriter('../Assets/stationary_bees/fan_'+str(key)+", "+str(len(frames))+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
+            out = cv2.VideoWriter()
+            out.open('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/fanning_exports/fan_'+str(key)+", "+str(len(frames))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
             for f in frames:
+                
                 out.write(f)
             out.release()
             i=i+1
@@ -179,7 +181,7 @@ def main():
     #windows video file path
     #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
 
     img1=None
    
@@ -197,7 +199,7 @@ def main():
         
         if img1 is not None:
             #mac file path
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
            
             #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
@@ -230,7 +232,6 @@ def main():
             #draw every contour on the current frame for testing purposes
             #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
             cv2.imshow("contours",img1)
-            cv2.imshow("Ellipse",imc)
             
             #increment img2
             img1=img2
