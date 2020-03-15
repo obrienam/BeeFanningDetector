@@ -17,29 +17,6 @@ def to_thresh(img,bk):
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
-#compare current bee contours with fanning bee reference contours
-#and find match.
-def detect_fanning(c1):
-    for i in range(3):
-        fname="C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/thresh_"+str(i+1)+".jpg"
-        f=cv2.imread(fname)
-       
-        f=cv2.cvtColor(f,cv2.COLOR_BGR2GRAY)
-        im3, cnts2, hierarchy2 = cv2.findContours(f, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        for c2 in cnts2:
-            a1=cv2.contourArea(c1)
-            a2=cv2.contourArea(c2)
-            #compare the two contour areas
-            
-            m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
-            if m<=0.3:
-                a=a1/a2
-                if(a<=1.1):
-                    return m
-                else:
-                    continue
-    return 1000
-
 #Compare the area, central point, and shape
 #of two contours to determine if the bee was stationary.
 def cmpContours(frame,c1,c2):
@@ -125,6 +102,8 @@ def rem_movement(im,thresh,cnt1,cnt2):
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan,imc
 
+#function for exporting fanning bee frames
+#into seperate videos.
 def make_vids(d_frames):
     i = 0
    
@@ -142,7 +121,8 @@ def make_vids(d_frames):
                 out.write(f)
             out.release()
             i=i+1
-
+'''
+Experimental watershed function
 def wshed(image,bk):
     conts=[]
     shifted=cv2.pyrMeanShiftFiltering(image,21,51)
@@ -176,6 +156,7 @@ def wshed(image,bk):
         c = max(cnts, key=cv2.contourArea)
         conts.append(c)
     return conts
+'''
 #main driver function
 def main():
     #windows video file path
@@ -226,12 +207,7 @@ def main():
 
             #show treshold and video
             cv2.imshow("threshold",thresh1)
-            #write current number of fanning bees to current frame
-            #cv2.putText(img1, "Total Fanning Bees Detected: {}".format(len(d_frames)), (10, 20),
-                #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            #draw every contour on the current frame for testing purposes
-            #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
-            cv2.imshow("contours",img1)
+            cv2.imshow("vid_feed",img1)
             
             #increment img2
             img1=img2
@@ -247,6 +223,8 @@ def main():
                 break
         times = times + 1
         #time.sleep(1)
+    #export frames of fanning bees into seperate videos
+    #found in assets/fanning_exports
     make_vids(d_frames)
     #close all windows and video stream    
     vs.release()
