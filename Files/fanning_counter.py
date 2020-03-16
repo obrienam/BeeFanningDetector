@@ -17,29 +17,6 @@ def to_thresh(img,bk):
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
-#compare current bee contours with fanning bee reference contours
-#and find match.
-def detect_fanning(c1):
-    for i in range(3):
-        fname="C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/thresh_"+str(i+1)+".jpg"
-        f=cv2.imread(fname)
-       
-        f=cv2.cvtColor(f,cv2.COLOR_BGR2GRAY)
-        im3, cnts2, hierarchy2 = cv2.findContours(f, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        for c2 in cnts2:
-            a1=cv2.contourArea(c1)
-            a2=cv2.contourArea(c2)
-            #compare the two contour areas
-            
-            m=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
-            if m<=0.3:
-                a=a1/a2
-                if(a<=1.1):
-                    return m
-                else:
-                    continue
-    return 1000
-
 #Compare the area, central point, and shape
 #of two contours to determine if the bee was stationary.
 def cmpContours(frame,c1,c2):
@@ -72,24 +49,26 @@ def cmpContours(frame,c1,c2):
         cv2.imshow("ellipse",eframe) 
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-20,cy1+20):
+                
                 if(d_frames.get(tuple([cX,cY])) is not None and 
-                (Ma>=42 and Ma<=49)):
+                #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
+                (angle >125 or angle <90)):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-                    print(Ma,ma)
+                    print(angle)
                     
                         
                     d_frames[cX,cY].append(eframe)
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        (Ma>=42 and Ma<=49)):
+        (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and (angle > 125 or angle <90)):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-            
-            print(Ma,ma)
+            print(angle)
+            #print(Ma,ma)
               
             d_frames[cx1,cy1]=[eframe]
             
@@ -124,22 +103,27 @@ def rem_movement(im,thresh,cnt1,cnt2):
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan,imc
 
+#function for exporting fanning bee frames
+#into seperate videos.
 def make_vids(d_frames):
     i = 0
    
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>1 and (width is not 0 and height is not 0)):
+        if(len(frames)>10 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
-            out = cv2.VideoWriter('../Assets/stationary_bees/fan_'+str(key)+", "+str(len(frames))+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (size))
+            out = cv2.VideoWriter()
+            out.open('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/fanning_exports/fan_'+str(key)+", "+str(len(frames))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
             for f in frames:
+                
                 out.write(f)
             out.release()
             i=i+1
-
+'''
+Experimental watershed function
 def wshed(image,bk):
     conts=[]
     shifted=cv2.pyrMeanShiftFiltering(image,21,51)
@@ -173,12 +157,13 @@ def wshed(image,bk):
         c = max(cnts, key=cv2.contourArea)
         conts.append(c)
     return conts
+'''
 #main driver function
 def main():
     #windows video file path
-    vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
+    #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    #vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
 
     img1=None
    
@@ -196,13 +181,13 @@ def main():
         
         if img1 is not None:
             #mac file path
-            #bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
            
-            bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
+            #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
             
-            bk=bk[75:75+315,0:0+637]
-            img2=img2[75:75+315,0:0+637]
+            bk=bk[75:75+260,0:0+640]
+            img2=img2[75:75+260,0:0+640]
             
 
             #take first threshold
@@ -223,18 +208,13 @@ def main():
 
             #show treshold and video
             cv2.imshow("threshold",thresh1)
-            #write current number of fanning bees to current frame
-            cv2.putText(img1, "Total Fanning Bees Detected: {}".format(len(d_frames)), (10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            #draw every contour on the current frame for testing purposes
-            #cv2.drawContours(img1, contours1, -1, (0,255,0), 2)
-            cv2.imshow("contours",img1)
+            cv2.imshow("vid_feed",img1)
             
             #increment img2
             img1=img2
         else:    
             img1=img2
-            img1=img1[75:75+315,0:0+637]
+            img1=img1[75:75+260,0:0+640]
         if times > 0:
             key=cv2.waitKey(1) & 0xFF
             #if q is pressed, stop loop
@@ -244,6 +224,8 @@ def main():
                 break
         times = times + 1
         #time.sleep(1)
+    #export frames of fanning bees into seperate videos
+    #found in assets/fanning_exports
     make_vids(d_frames)
     #close all windows and video stream    
     vs.release()
