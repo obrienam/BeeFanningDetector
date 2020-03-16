@@ -51,7 +51,8 @@ def cmpContours(frame,c1,c2):
             for cY in range(cy1-20,cy1+20):
                 
                 if(d_frames.get(tuple([cX,cY])) is not None and 
-                (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and (angle >125 or angle <90)):
+                #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
+                (angle >125 or angle <90)):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
@@ -110,7 +111,7 @@ def make_vids(d_frames):
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>1 and (width is not 0 and height is not 0)):
+        if(len(frames)>10 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
