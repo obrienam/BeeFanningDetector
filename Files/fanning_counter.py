@@ -63,7 +63,7 @@ def cmpContours(frame,c1,c2):
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and (angle > 125 or angle <90)):
+        (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=10.5 and (angle > 125 or angle <90)):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
@@ -93,7 +93,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
             #check if bee was stationary and was in the 
             #size range of a staionary bee
             imc=im.copy() 
-            if c1.size>460 and cmpContours(im,c1,c2):
+            if c1.size>440 and cmpContours(im,c1,c2):
                 found=True
         if(found==False):
             #if not found, append it to moving contours
@@ -111,7 +111,7 @@ def make_vids(d_frames):
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>10 and (width is not 0 and height is not 0)):
+        if(len(frames)>20 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
