@@ -41,7 +41,8 @@ def cmpContours(frame,c1,c2):
         and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
         eframe=frame.copy()
         ell=cv2.fitEllipse(c1)
-        (x,y),(Ma,ma),angle=cv2.fitEllipse(c1)
+        (x,y),(ma,Ma),angle=cv2.fitEllipse(c1)
+        
         cv2.ellipse(eframe,ell,(0,255,0),2)
         
         
@@ -52,22 +53,26 @@ def cmpContours(frame,c1,c2):
                 
                 if(d_frames.get(tuple([cX,cY])) is not None and 
                 #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
-                (angle >125 or angle <90)):
+                (angle >125 or angle <90) and cY>100):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-                    print(angle)
                     
-                        
+                    
+                    if cX==543:
+                        print(angle)  
                     d_frames[cX,cY].append(eframe)
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        (Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=10.5 and (angle > 125 or angle <90)):
+        ((ma>=42 and ma<=49)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125  or angle <80) 
+        and cy1>100):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-            print(angle)
+            if cx1==543:
+                print(angle)
+            
             #print(Ma,ma)
               
             d_frames[cx1,cy1]=[eframe]
@@ -111,7 +116,7 @@ def make_vids(d_frames):
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>20 and (width is not 0 and height is not 0)):
+        if(len(frames)>1 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
@@ -223,7 +228,7 @@ def main():
             if key == ord("q"):
                 break
         times = times + 1
-        #time.sleep(1)
+        #time.sleep(0.5)
     #export frames of fanning bees into seperate videos
     #found in assets/fanning_exports
     make_vids(d_frames)
