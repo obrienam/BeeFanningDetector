@@ -65,7 +65,7 @@ def cmpContours(frame,c1,c2):
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        ((ma>=42 and ma<=49)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125  or angle <80) 
+        ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125  or angle <80) 
         and cy1>100):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
