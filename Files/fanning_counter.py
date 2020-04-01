@@ -49,7 +49,7 @@ def cmpContours(frame,c1,c2):
         
         cv2.imshow("ellipse",eframe) 
         for cX in range(cx1-20,cx1+20):
-            for cY in range(cy1-20,cy1+20):
+            for cY in range(cy1-10,cy1+10):
                 
                 if(d_frames.get(tuple([cX,cY])) is not None and 
                 #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
@@ -65,7 +65,7 @@ def cmpContours(frame,c1,c2):
                     detected=True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125  or angle <80) 
+        ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125 or (angle < 70 and angle > 20)) 
         and cy1>100):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
@@ -116,7 +116,7 @@ def make_vids(d_frames):
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>1 and (width is not 0 and height is not 0)):
+        if(len(frames)>10 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
