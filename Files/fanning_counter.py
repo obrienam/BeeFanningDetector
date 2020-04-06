@@ -18,38 +18,40 @@ def to_thresh(img,bk):
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
 
-#Compare the area, central point, and shape
-#of two contours to determine if the bee was stationary.
-def cmpContours(frame,c1,c2):
+#Compare the area, central point, shape, and ellipse angle
+#of two contours to determine if the bee in the contour is fanning.
+def checkFanning(frame,c1,c2):
     
     match=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
 
+    #Compute center coordinate of the contours
     mom1=cv2.moments(c1)
     cx1 = int(mom1["m10"] / mom1["m00"])
     cy1 = int(mom1["m01"] / mom1["m00"])
     mom2=cv2.moments(c2)
     cx2 = int(mom2["m10"] / mom2["m00"])
     cy2 = int(mom2["m01"] / mom2["m00"])
+    #Compare the center coordinates of the two contours
     cx=cx1/cx2
     cy=cy1/cy2
-
+    #Compare the areas of the two contours
     a1=cv2.contourArea(c1)
     a2=cv2.contourArea(c2)
     a=a1/a2
     detected=False
 
-    
+    #Check if the two contours "match"
     if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
         and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
+        #Draw an ellipse around the contour
         eframe=frame.copy()
         ell=cv2.fitEllipse(c1)
         (x,y),(ma,Ma),angle=cv2.fitEllipse(c1)
-        
         cv2.ellipse(eframe,ell,(0,255,0),2)
-        
-        
-        
-        #cv2.imshow("ellipse",eframe) 
+
+        #Check for an existing ellipse near by in the hive. 
+        #If found, append frame to dictionary entry at the
+        #nearby location.
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-10,cy1+10):
                 
@@ -60,34 +62,24 @@ def cmpContours(frame,c1,c2):
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
                     ellipses.append(ell)
-                    
-                    if cX==543:
-                        print(angle)  
                     d_frames[cX,cY].append(eframe)
-                    detected=True
                     return True
-
+        #If ellipse isn't found nearby, insert frame to frame dictionary.
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
         ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125 or (angle < 70 and angle > 20)) 
         and cy1>100):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
             eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-            if cx1==543:
-                print(angle)
-            
-            #print(Ma,ma)
             ellipses.append(ell)  
             d_frames[cx1,cy1]=[eframe]
-            
             rects[cx1,cy1]=[x,y,w,h]
-        
-        return True
+            return True
     
     return False
 
 #remove moving/not fanning bees from threshold frame
-#and count total number of fanning bees
+#and detect any of the fanning bees
 def rem_movement(im,thresh,cnt1,cnt2):
     #loop through first conotur list
     numFan=0
@@ -103,7 +95,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
             #check if bee was stationary and was in the 
             #size range of a staionary bee
             imc=im.copy() 
-            if c1.size>440 and cmpContours(im,c1,c2):
+            if c1.size>440 and checkFanning(im,c1,c2):
                 found=True
                 numMatch+=1
         if(found==False):
@@ -120,7 +112,7 @@ def rem_movement(im,thresh,cnt1,cnt2):
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan,imc
 
-#function for exporting fanning bee frames
+#function for exporting fanning bee frames from dictionary
 #into seperate videos.
 def make_vids(d_frames):
     i = 0
@@ -180,7 +172,7 @@ def main():
     #windows video file path
     #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
 
     img1=None
    
