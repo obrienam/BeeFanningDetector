@@ -4,6 +4,7 @@ import time
 import random as rng
 d_frames={}
 rects={}
+ellipses=[]
 times = 0
 #convert input frame to threshold using background subtraction
 def to_thresh(img,bk):
@@ -20,6 +21,7 @@ def to_thresh(img,bk):
 #Compare the area, central point, and shape
 #of two contours to determine if the bee was stationary.
 def cmpContours(frame,c1,c2):
+    
     match=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
 
     mom1=cv2.moments(c1)
@@ -47,7 +49,7 @@ def cmpContours(frame,c1,c2):
         
         
         
-        cv2.imshow("ellipse",eframe) 
+        #cv2.imshow("ellipse",eframe) 
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-10,cy1+10):
                 
@@ -57,12 +59,13 @@ def cmpContours(frame,c1,c2):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
                     eframe=eframe[y-20:y+h+20,x-20:x+w+20]
-                    
+                    ellipses.append(ell)
                     
                     if cX==543:
                         print(angle)  
                     d_frames[cX,cY].append(eframe)
                     detected=True
+                    return True
 
         if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
         ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125 or (angle < 70 and angle > 20)) 
@@ -74,7 +77,7 @@ def cmpContours(frame,c1,c2):
                 print(angle)
             
             #print(Ma,ma)
-              
+            ellipses.append(ell)  
             d_frames[cx1,cy1]=[eframe]
             
             rects[cx1,cy1]=[x,y,w,h]
@@ -89,10 +92,12 @@ def rem_movement(im,thresh,cnt1,cnt2):
     #loop through first conotur list
     numFan=0
     cntmoving=[]
+    global ellipses
+    ellipses=[]
     imc=im
+    numMatch=0
     for c1 in cnt1:
         found=False
-        
         #loop through second contour list
         for c2 in cnt2:
             #check if bee was stationary and was in the 
@@ -100,10 +105,17 @@ def rem_movement(im,thresh,cnt1,cnt2):
             imc=im.copy() 
             if c1.size>440 and cmpContours(im,c1,c2):
                 found=True
+                numMatch+=1
         if(found==False):
             #if not found, append it to moving contours
             cntmoving.append(c1)
-    
+    if(numMatch>0 and len(ellipses)>0):
+        #print(numMatch)
+        cframe=im.copy()
+        print(len(ellipses))
+        for e in ellipses:
+            cv2.ellipse(cframe,e,(0,255,0),2)
+        cv2.imshow("Ellipse",cframe)
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan,imc
