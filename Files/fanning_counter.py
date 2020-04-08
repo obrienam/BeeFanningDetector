@@ -53,14 +53,14 @@ def checkFanning(frame,c1,c2):
         #If found, append frame to dictionary entry at the
         #nearby location.
         for cX in range(cx1-20,cx1+20):
-            for cY in range(cy1-10,cy1+10):
+            for cY in range(cy1-55,cy1+55):
                 
                 if(d_frames.get(tuple([cX,cY])) is not None and 
                 #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
                 (angle >125 or angle <90) and cY>100):
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                    eframe=eframe[y-20:y+h+20,x-20:x+w+20]
+                    eframe=eframe[y-55:y+h+55,x-20:x+w+20]
                     ellipses.append(ell)
                     d_frames[cX,cY].append(eframe)
                     return True
@@ -70,7 +70,7 @@ def checkFanning(frame,c1,c2):
         and cy1>100):
             #print("recognized" + str(cx1))
             x,y,w,h=cv2.boundingRect(c1)
-            eframe=eframe[y-20:y+h+20,x-20:x+w+20]
+            eframe=eframe[y-55:y+h+55,x-20:x+w+20]
             ellipses.append(ell)  
             d_frames[cx1,cy1]=[eframe]
             rects[cx1,cy1]=[x,y,w,h]
@@ -120,7 +120,7 @@ def make_vids(d_frames):
     for key in d_frames:
         frames=d_frames[key]
         height, width, layers = frames[0].shape
-        if(len(frames)>10 and (width is not 0 and height is not 0)):
+        if(len(frames)>15 and (width is not 0 and height is not 0)):
             
            
             size = (width,height)
@@ -172,7 +172,7 @@ def main():
     #windows video file path
     #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
 
     img1=None
    
