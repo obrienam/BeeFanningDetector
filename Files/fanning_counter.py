@@ -53,22 +53,29 @@ def checkFanning(frame,c1,c2):
         for cX in range(cx1-20,cx1+20):
             for cY in range(cy1-55,cy1+55):
                 
-                if(d_frames.get(tuple([cX,cY])) is not None and 
+                if(d_frames.get(tuple([cX,cY])) is not None): #and 
                 #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
-                (angle >125 or angle <90) and cY>100):
+                #(angle >125 or angle <90) and cY>100):
+                    print(angle)
+                    print(ma,Ma)
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                    eframe=eframe[y-55:y+h+55,x-20:x+w+20]
+                    #eframe=eframe[y-55:y+h+55,x-20:x+w+20]
                     ellipses.append(ell)
                     d_frames[cX,cY].append(eframe)
+                    #time.sleep(0.5)
                     return True
         #If ellipse isn't found nearby, insert frame to frame dictionary.
-        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False and 
-        ((ma>=42 and ma<=49 and Ma>=40 and Ma<=90)or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205))and Ma/ma>=1.6 and Ma/ma<=10.5 and (angle > 125 or (angle < 70 and angle > 20)) 
-        and cy1>100):
+        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False
+        and (ma>=30 and ma<=55 and ((Ma>=70 and Ma<=80)or(Ma>=140 and Ma<=160)or(Ma>=210 and Ma<=240))) and (angle > 110 or (angle < 70 and angle > 20))):#or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205)) 
+        #and cy1>100):
             #print("recognized" + str(cx1))
+            print(angle)
+            print(cx1,cy1)
+            print(ma,Ma)
+            #time.sleep(0.5)
             x,y,w,h=cv2.boundingRect(c1)
-            eframe=eframe[y-55:y+h+55,x-20:x+w+20]
+            #eframe=eframe[y-55:y+h+55,x-20:x+w+20]
             ellipses.append(ell)  
             d_frames[cx1,cy1]=[eframe]
             rects[cx1,cy1]=[x,y,w,h]
@@ -101,10 +108,12 @@ def rem_movement(im,thresh,cnt1,cnt2):
             cntmoving.append(c1)
     if(numMatch>0 and len(ellipses)>0):
         cframe=im.copy()
-        print(len(ellipses))
+  
         for e in ellipses:
             cv2.ellipse(cframe,e,(0,255,0),2)
         cv2.imshow("Ellipse",cframe)
+        
+        
     #fill contours that moved with white
     cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
     return thresh,numFan,imc
@@ -114,8 +123,11 @@ def rem_movement(im,thresh,cnt1,cnt2):
 def make_vids(d_frames):
     i = 0
     for key in d_frames:
+        print(key)
         frames=d_frames[key]
+        print(len(frames))
         height, width, layers = frames[0].shape
+        print(width,height)
         if(len(frames)>15 and (width is not 0 and height is not 0)):
             size = (width,height)
             out = cv2.VideoWriter()
@@ -166,7 +178,7 @@ def main():
     #windows video file path
     #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
+    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid5.mp4")
     img1=None
 
     #loop through video frames 
@@ -178,13 +190,13 @@ def main():
         
         if img1 is not None:
             #mac file path
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
+            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_bk2.png')
             #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
             #crop bk and image frame to appropriate 
             #region of interest
-            bk=bk[75:75+260,0:0+640]
-            img2=img2[75:75+260,0:0+640]
+            bk=bk[175:175+230,0:0+640]
+            img2=img2[175:175+230,0:0+640]
             
 
             #take first threshold
@@ -211,7 +223,7 @@ def main():
             img1=img2
         else:    
             img1=img2
-            img1=img1[75:75+260,0:0+640]
+            img1=img1[175:175+230,0:0+640]
         if times > 0:
             key=cv2.waitKey(1) & 0xFF
             #if q is pressed, stop loop
