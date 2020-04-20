@@ -1,47 +1,27 @@
 import cv2
 import numpy as np
-import imutils
-from skimage.feature import peak_local_max
-from skimage.morphology import watershed
 from scipy import ndimage
-vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid1.mp4")
+times=0
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid5.mp4")
+bk=cv2.imread("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_bk2.png")
 while True:
-    hasFrames,image=vs.read()
-    if (hasFrames==False):
-        break
+    hasframes,image=vs.read()
+    #image=image[175:175+230,0:0+640]
+    #bk=bk[175:175+230,0:0+640]
+    subImage=(bk.astype('int32')-image.astype('int32')).clip(0).astype('uint8')
+    grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(grey,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,11,2)
+    #thresh=255-thresh
+    
 
-    bk = cv2.imread("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/fan_ref/bk_3_2.jpg")
-
-    shifted=cv2.pyrMeanShiftFiltering(image,21,51)
-    gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 0, 255,
-        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    thresh=255-thresh
-    cv2.imshow("Thresh", thresh)
-
-    D = ndimage.distance_transform_edt(thresh)
-    localMax = peak_local_max(D, indices=False, min_distance=20,
-        labels=thresh)
-
-    markers = ndimage.label(localMax, structure=np.ones((3, 3)))[0]
-    labels = watershed(-D, markers, mask=thresh)
-
-    for label in np.unique(labels):
-        print("blah")
-        # if the label is zero, we are examining the 'background'
-        # so simply ignore it
-        if label == 0:
+    cv2.imshow("Output", thresh)
+    if times > 0:
+        key=cv2.waitKey(1) & 0xFF
+        #if q is pressed, stop loop
+        if key == ord("c"):
             continue
-        # otherwise, allocate memory for the label region and draw
-        # it on the mask
-        mask = np.zeros(gray.shape, dtype="uint8")
-        mask[labels == label] = 255
-        # detect contours in the mask and grab the largest one
-        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
-        c = max(cnts, key=cv2.contourArea)
-        cv2.drawContours(image,[c],0,(0,255,0),1)
-
-    cv2.imshow("Output", image)
-    cv2.waitKey(0)
+        if key == ord("q"):
+            break
+    times = times + 1
+    
