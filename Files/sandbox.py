@@ -10,11 +10,11 @@ while True:
     #bk=bk[175:175+230,0:0+640]
     subImage=(bk.astype('int32')-image.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY_INV)
-    thresh=255-thresh
-    kernel=np.ones((5,5),np.uint8)
-    thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
-    thresh=thresh[175:175+230,0:0+640]
+    thresh = cv2.adaptiveThreshold(grey,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,11,2)
+    #thresh=255-thresh
+    
+
     cv2.imshow("Output", thresh)
     if times > 0:
         key=cv2.waitKey(1) & 0xFF
