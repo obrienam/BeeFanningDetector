@@ -60,7 +60,8 @@ def checkFanning(frame,c1,c2):
                     print(ma,Ma)
                     x,y,w,h=rects.get(tuple([cX,cY]))
                     #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                    eframe=eframe[y-10:y+h+55,x-10:x+w+20]
+                   
+                    eframe=eframe[y:y+h,x:x+w]
                     ellipses.append(ell)
                     d_frames[cX,cY].append(eframe)
                     #time.sleep(0.5)
@@ -75,10 +76,20 @@ def checkFanning(frame,c1,c2):
             print(ma,Ma)
             #time.sleep(0.5)
             x,y,w,h=cv2.boundingRect(c1)
-            eframe=eframe[y-10:y+h+55,x-10:x+w+20]
+            hy=0
+            xw=0
+            if(y>55):
+                hy=55
+            else:
+                hy=y/2
+            if(x>20):
+                xw=20
+            else:
+                xw=x/2
+            eframe=eframe[y-hy:y+h+55,x-xw:x+w+20]
             ellipses.append(ell)  
             d_frames[cx1,cy1]=[eframe]
-            rects[cx1,cy1]=[x,y,w,h]
+            rects[cx1,cy1]=[x-xw,y-hy,w+xw+20,h+hy+55]
             return True
     
     return False
