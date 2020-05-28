@@ -142,7 +142,7 @@ def make_vids(d_frames):
         if(len(frames)>=15 and (width is not 0 and height is not 0)):
             size = (width,height)
             out = cv2.VideoWriter()
-            out.open('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/fanning_exports/fan_'+str(key)+", "+str(len(frames))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
+            out.open('/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/fanning_exports/fan_'+str(key)+", "+str(len(frames))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
             for f in frames:
                 
                 out.write(f)
@@ -189,7 +189,7 @@ def main():
     #windows video file path
     #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
     #mac video file path
-    vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
+    vs=cv2.VideoCapture("/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
     img1=None
 
     #loop through video frames 
@@ -201,7 +201,7 @@ def main():
         
         if img1 is not None:
             #mac file path
-            bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
+            bk=cv2.imread('/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
             #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
             
             #crop bk and image frame to appropriate 
