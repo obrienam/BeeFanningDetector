@@ -10,8 +10,7 @@ times = 0
 def to_thresh(img,bk):
     subImage=(bk.astype('int32')-img.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY_INV)
-    thresh=255-thresh
+    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY)
     kernel=np.ones((5,5),np.uint8)
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     return thresh
