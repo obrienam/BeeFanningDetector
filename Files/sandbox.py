@@ -38,7 +38,9 @@ while True:
         
         x,y,w,h=cv2.boundingRect(c)
         if(w*h>150 and w*h < 200 and w > h):
-            cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+            #cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+            ell=cv2.fitEllipse(c)
+            cv2.ellipse(img,ell,(0,255,0),2)
             print(w*h)
         else:
             cnt2.append(c)
