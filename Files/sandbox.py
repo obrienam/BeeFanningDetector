@@ -12,8 +12,8 @@ while True:
     cv2.imshow("Output", img)
     subImage=(bk.astype('int32')-img.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY_INV)
-    thresh=255-thresh
+    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY)
+    #thresh=255-thresh
     kernel=np.ones((5,5),np.uint8)
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     res2 = cv2.bitwise_and(img, img, mask= thresh)
@@ -27,8 +27,8 @@ while True:
 
     subImage2=(res.astype('int32')-bk2.astype('int32')).clip(0).astype('uint8')
     grey2=cv2.cvtColor(subImage2,cv2.COLOR_BGR2GRAY)
-    retval2,thresh2=cv2.threshold(grey2,35,255,cv2.THRESH_BINARY_INV)
-    thresh2=255-thresh2
+    retval2,thresh2=cv2.threshold(grey2,35,255,cv2.THRESH_BINARY)
+    #thresh2=255-thresh2
     kernel2=np.ones((5,5),np.uint8)
     thresh2=cv2.morphologyEx(thresh2,cv2.MORPH_OPEN,kernel)
     im2, contours1, hierarchy1 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
