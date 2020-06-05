@@ -5,10 +5,25 @@ times=0
 vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
 bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/black.png')
-
-def isFanning(ell):
+frames={}
+found=False
+def checkWings(c):
+    found=False
+    mom=cv2.moments(c)
+    cx = int(mom["m10"] / mom["m00"])
+    cy = int(mom["m01"] / mom["m00"])
+    if(frames.get(tuple([cx,cy])) is not None):
+        frames[cx,cy]+=1
+    else:
+        for cY in range (cy-10,cy+10):
+            if(frames.get(tuple([cx,cY])) is not None):
+                frames[cx,cY]+=1
+                found=True
+                break
+        if(found==False):
+            frames[cx,cy]=1
     print("fanning?")
-    
+
 while True:
     hasframes,img=vs.read()
     
