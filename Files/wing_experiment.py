@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from scipy import ndimage
 times=0
+fanning=0
 vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
 bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/black.png')
@@ -19,6 +20,9 @@ def checkWings(c):
             if(frames.get(tuple([cx,cY])) is not None):
                 frames[cx,cY]+=1
                 found=True
+                if(frames[cx,cY]>4):
+                    print("Fanning Detected")
+                    fanning+=1
                 break
         if(found==False):
             frames[cx,cy]=1
