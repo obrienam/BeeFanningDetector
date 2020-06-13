@@ -9,16 +9,16 @@ bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/te
 frames={}
 fantot={}
 foundbee={}
-fanframe={}
+#fanframe={}
 found=False
-sframes=0
+#sframes=0
 def checkWings(c,img):
     global numfan
     global fantot
     global frames
     global foundbee
-    global sframes
-    global fanframe
+    #global sframes
+    #global fanframe
     (x,y),(ma,Ma),angle=cv2.fitEllipse(c)
     ell=cv2.fitEllipse(c)
     found=False
@@ -31,13 +31,14 @@ def checkWings(c,img):
     else:
         for cY in range (cy-10,cy+10):
             for cX in range (cx-55,cx+55):
+                '''
                 framediff=0
                 if(fanframe.get(tuple([cX,cY])) is not None):
                     
                     framediff=sframes-fanframe.get(tuple([cX,cY]))
-                    
-                if(frames.get(tuple([cX,cY])) is not None and framediff<20):
-                    fanframe[cX,cY]=sframes
+                ''' 
+                if(frames.get(tuple([cX,cY])) is not None):# and framediff<10):
+                    #fanframe[cX,cY]=sframes
                     fantot[cX,cY]+=1
                     print("{},{}".format(cx,cy))
                     frames[cX,cY].append(img[cY-100:cY+100,cX-100:cX+100])
@@ -54,20 +55,33 @@ def checkWings(c,img):
                         #if key == ord("c"):
                         #    continue
                     break
-                
-                if(frames.get(tuple([cX,cY])) is not None and framediff>=20):
-                    found=True
-                    fanframe[cX,cY+1]=sframes
-                    fantot[cX,cY+1]=1
-                    frames[cX,cY+1]=[img[cY+1-100:cY+1+100,cX-100:cX+100]]
-                    foundbee[cX,cY+1]=False
+                '''
+                if(frames.get(tuple([cX,cY])) is not None and framediff>=10):
+                    if(frames.get(tuple([cX,cY+1])) is None):
+                        found=True
+                        fanframe[cX,cY+1]=sframes
+                        fantot[cX,cY+1]=1
+                        frames[cX,cY+1]=[img[cY+1-100:cY+1+100,cX-100:cX+100]]
+                        foundbee[cX,cY+1]=False
+                    else:
+                        fanframe[cX,cY+1]=sframes
+                        fantot[cX,cY+1]+=1
+                        print("{},{}".format(cX,cY+1))
+                        frames[cX,cY+1].append(img[cY+1-100:cY+1+100,cX-100:cX+100])
+                        found=True
+                        if(fantot[cX,cY+1]>20 and foundbee.get(tuple([cX,cY+1]))==False):
+                            print("Fanning Detected")
+                            print("{}, {}".format(cX,cY+1))
+                            cv2.ellipse(img,ell,(255,0,0),2)
+                            foundbee[cX,cY+1]=True
+                            numfan+=1
                     break
-                    
+                    '''
                 
         if(found==False and cy < 189):
             fantot[cx,cy]=1
-            fanframe[cx,cy]=sframes
-            print(sframes)
+            #fanframe[cx,cy]=sframes
+            #print(sframes)
             frames[cx,cy]=[img[cy-100:cy+100,cx-100:cx+100]]
             foundbee[cx,cy]=False
 def make_vids():
@@ -91,7 +105,7 @@ def make_vids():
 bk=bk[100:100+240,0:0+640]
 bk2=bk2[100:100+240,0:0+640]
 while True:
-    sframes+=1
+    #sframes+=1
     hasframes,img=vs.read()
     if(hasframes == False):
         break
