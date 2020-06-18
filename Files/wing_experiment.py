@@ -42,24 +42,23 @@ def checkWings(c,img):
     mom=cv2.moments(c)
     cx = int(mom["m10"] / mom["m00"])
     cy = int(mom["m01"] / mom["m00"])
-    if(frames.get(tuple([cx,cy])) is not None):
-        if(i in frames.get(tuple([cx,cy]))):
-            framediff=0
-            if(fanframe.get(tuple([cx,cy])) is not None):
-                while framediff<100:
-                    if(i in fanframe.get(tuple([cx,cy]))):
-                        framediff=sframes-fanframe.get(tuple([cx,cy]))[i]
-                    else:
-                        break
-                    if framediff>=100:
-                        print(i)
-                        i+=1
-                    else:
-                        break
-            if(i in fanframe.get(tuple([cx,cy]))):
-                
-                fanframe[cx,cy][i]=sframes
-                frames[cx,cy][i].append(img[cy-100:cy+100,cx-100:cx+100])
+    if(frames.get(tuple([cx,cy])) is not None and i in frames.get(tuple([cx,cy]))):
+        framediff=0
+        if(fanframe.get(tuple([cx,cy])) is not None):
+            while framediff<100:
+                if(i in fanframe.get(tuple([cx,cy]))):
+                    framediff=sframes-fanframe.get(tuple([cx,cy]))[i]
+                else:
+                    break
+                if framediff>=100:
+                    print(i)
+                    i+=1
+                else:
+                    break
+        if(i in fanframe.get(tuple([cx,cy]))):
+            
+            fanframe[cx,cy][i]=sframes
+            frames[cx,cy][i].append(img[cy-100:cy+100,cx-100:cx+100])
     else:
         for cY in range (cy-10,cy+10):
             for cX in range (cx-55,cx+55):
@@ -71,32 +70,27 @@ def checkWings(c,img):
                             framediff=sframes-fanframe.get(tuple([cX,cY]))[i]
                         else:
                             break
-                        
                         if framediff>=100:
                             print(i)
                             i+=1
                         else:
-                            break
-                   
+                            break   
                         
                 
-                if(frames.get(tuple([cX,cY])) is not None):
-                    if(i in frames.get(tuple([cX,cY]))):
-                        
-                        print("{},{}".format(cx,cy))
-                        frames[cX,cY][i].append(img[cY-100:cY+100,cX-100:cX+100])
-                        fanframe[cX,cY][i]=sframes
-                        found=True
-                        if(len(frames.get(tuple([cX,cY]))[i])>20 and foundbee.get(tuple([cX,cY]))[i]==False):
-                            print("Fanning Detected")
-                            print("{}, {}".format(cX,cY))
-                            cv2.ellipse(img,ell,(255,0,0),2)
-                            foundbee[cX,cY][i]=True
-                            numfan+=1
-                        break
+                if(frames.get(tuple([cX,cY])) is not None and i in frames.get(tuple([cX,cY]))):
+                    #print("{},{}".format(cx,cy))
+                    frames[cX,cY][i].append(img[cY-100:cY+100,cX-100:cX+100])
+                    fanframe[cX,cY][i]=sframes
+                    found=True
+                    if(len(frames.get(tuple([cX,cY]))[i])>20 and foundbee.get(tuple([cX,cY]))[i]==False):
+                        print("Fanning Detected")
+                        #print("{}, {}".format(cX,cY))
+                        cv2.ellipse(img,ell,(255,0,0),2)
+                        foundbee[cX,cY][i]=True
+                        numfan+=1
+                    break
                 
         if(found==False and cy < 189):
-            
             fanframe[cx,cy][i]=sframes
             frames[cx,cy][i]=[img[cy-100:cy+100,cx-100:cx+100]]
             foundbee[cx,cy][i]=False
@@ -186,7 +180,6 @@ while True:
             continue
         if key == ord("q"):
             break
-    
     times = times + 1
 vs.release()
 cv2.destroyAllWindows()
