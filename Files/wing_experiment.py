@@ -7,14 +7,13 @@ from collections import defaultdict
 Variables that are important for
 this program.
 '''
-bk=bk[100:100+240,0:0+640]
-bk2=bk2[100:100+240,0:0+640]
+
 times=0
 numfan=0
 #Video stream used for processing
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/pi4test.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
 #Background image used for initial background subtraction and binary and operations.
-bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/pi4test.png')
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/black.png')
 frames=defaultdict(dict) #Dict for holding the video frames of potentially fanning bees
@@ -22,7 +21,8 @@ foundbee=defaultdict(dict) #Dict that holds flags cooresponding to wether or not
 fanframe=defaultdict(dict) #Dict that holds the most recent frame number when a particular bee was detected.
 found=False
 sframes=0
-
+bk=bk[100:100+240,0:0+640]
+bk2=bk2[100:100+240,0:0+640]
 
 '''
 This function is given a wing contour and
@@ -42,6 +42,7 @@ def checkWings(c,img):
     mom=cv2.moments(c)
     cx = int(mom["m10"] / mom["m00"])
     cy = int(mom["m01"] / mom["m00"])
+    height, width, layers = img.shape
     if(frames.get(tuple([cx,cy])) is not None and i in frames.get(tuple([cx,cy]))):
         framediff=0
         if(fanframe.get(tuple([cx,cy])) is not None):
@@ -109,15 +110,13 @@ def make_vids():
     for key in frames:
         for key2 in frames[key]:
             f=frames[key][key2]
-            
             height, width, layers = f[0].shape
-            print("Size:{}".format(len(f)))
             if(len(f)>=20 and (width is not 0 and height is not 0)):
+                print(len(f))
                 size = (width,height)
                 out = cv2.VideoWriter()
                 out.open('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/fanning_exports/wings_'+str(key)+", "+str(len(f))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
-                for fr in f:
-                    
+                for fr in f: 
                     out.write(fr)
                 out.release()
                 i=i+1
