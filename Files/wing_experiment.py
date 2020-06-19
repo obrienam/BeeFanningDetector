@@ -11,7 +11,7 @@ this program.
 times=0
 numfan=0
 #Video stream used for processing
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
 #Background image used for initial background subtraction and binary and operations.
 bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
@@ -37,6 +37,7 @@ def checkWings(c,img):
     global fanframe
     i=0
     (x,y),(ma,Ma),angle=cv2.fitEllipse(c)
+    x2,y2,w,h=cv2.boundingRect(c)
     ell=cv2.fitEllipse(c)
     found=False
     mom=cv2.moments(c)
@@ -47,12 +48,12 @@ def checkWings(c,img):
     if(cy>100):
         hy=100
     else:
-        hy=cy/2
+        hy=50
     if(cx>100):
         xw=100
     else:
-        xw=cx/2
-    height, width, layers = img.shape
+        xw=50
+    #height, width, layers = img.shape
     if(frames.get(tuple([cx,cy])) is not None and i in frames.get(tuple([cx,cy]))):
         framediff=0
         if(fanframe.get(tuple([cx,cy])) is not None):
@@ -67,7 +68,7 @@ def checkWings(c,img):
                 else:
                     break
         if(i in fanframe.get(tuple([cx,cy]))):
-            
+            #hy, xw, layers = frames[cx,cy][i][0].shape
             fanframe[cx,cy][i]=sframes
             frames[cx,cy][i].append(img[cy-hy:cy+hy,cx-xw:cx+xw])
     else:
@@ -90,10 +91,19 @@ def checkWings(c,img):
                 
                 if(frames.get(tuple([cX,cY])) is not None and i in frames.get(tuple([cX,cY]))):
                     #print("{},{}".format(cx,cy))
+                    #hy, xw, layers = frames[cX,cY][i][0].shape
+                    if(cY>100):
+                        hy=100
+                    else:
+                        hy=50
+                    if(cX>100):
+                        xw=100
+                    else:
+                        xw=50
                     frames[cX,cY][i].append(img[cY-hy:cY+hy,cX-xw:cX+xw])
                     fanframe[cX,cY][i]=sframes
                     found=True
-                    if(len(frames.get(tuple([cX,cY]))[i])>20 and foundbee.get(tuple([cX,cY]))[i]==False):
+                    if(len(frames.get(tuple([cX,cY]))[i])>=20 and foundbee.get(tuple([cX,cY]))[i]==False):
                         print("Fanning Detected")
                         #print("{}, {}".format(cX,cY))
                         cv2.ellipse(img,ell,(255,0,0),2)
