@@ -40,8 +40,18 @@ def checkWings(c,img):
     ell=cv2.fitEllipse(c)
     found=False
     mom=cv2.moments(c)
+    hy=0
+    xw=0
     cx = int(mom["m10"] / mom["m00"])
     cy = int(mom["m01"] / mom["m00"])
+    if(cy>100):
+        hy=100
+    else:
+        hy=cy/2
+    if(cx>100):
+        xw=100
+    else:
+        xw=cx/2
     height, width, layers = img.shape
     if(frames.get(tuple([cx,cy])) is not None and i in frames.get(tuple([cx,cy]))):
         framediff=0
@@ -59,7 +69,7 @@ def checkWings(c,img):
         if(i in fanframe.get(tuple([cx,cy]))):
             
             fanframe[cx,cy][i]=sframes
-            frames[cx,cy][i].append(img[cy-100:cy+100,cx-100:cx+100])
+            frames[cx,cy][i].append(img[cy-hy:cy+hy,cx-xw:cx+xw])
     else:
         for cY in range (cy-10,cy+10):
             for cX in range (cx-55,cx+55):
@@ -80,7 +90,7 @@ def checkWings(c,img):
                 
                 if(frames.get(tuple([cX,cY])) is not None and i in frames.get(tuple([cX,cY]))):
                     #print("{},{}".format(cx,cy))
-                    frames[cX,cY][i].append(img[cY-100:cY+100,cX-100:cX+100])
+                    frames[cX,cY][i].append(img[cY-hy:cY+hy,cX-xw:cX+xw])
                     fanframe[cX,cY][i]=sframes
                     found=True
                     if(len(frames.get(tuple([cX,cY]))[i])>20 and foundbee.get(tuple([cX,cY]))[i]==False):
@@ -93,7 +103,7 @@ def checkWings(c,img):
                 
         if(found==False and cy < 189):
             fanframe[cx,cy][i]=sframes
-            frames[cx,cy][i]=[img[cy-100:cy+100,cx-100:cx+100]]
+            frames[cx,cy][i]=[img[cy-hy:cy+hy,cx-xw:cx+xw]]
             foundbee[cx,cy][i]=False
 
 
