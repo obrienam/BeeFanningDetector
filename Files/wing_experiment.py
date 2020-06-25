@@ -11,11 +11,11 @@ this program.
 times=0
 numfan=0
 #Video stream used for processing
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
 #Background image used for initial background subtraction and binary and operations.
-bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
-bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/black.png')
+bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/black.png')
 frames=defaultdict(dict) #Dict for holding the video frames of potentially fanning bees
 foundbee=defaultdict(dict) #Dict that holds flags cooresponding to wether or not a fanning bee was found at a particular spot
 fanframe=defaultdict(dict) #Dict that holds the most recent frame number when a particular bee was detected.
@@ -60,10 +60,12 @@ def checkWings(c,img):
             while framediff<100:
                 if(i in fanframe.get(tuple([cx,cy]))):
                     framediff=sframes-fanframe.get(tuple([cx,cy]))[i]
+                    if(cx == 428 and cy == 140):
+                        print("Diff: {}".format(framediff))
                 else:
                     break
                 if framediff>=100:
-                    print(i)
+                    
                     i+=1
                 else:
                     break
@@ -72,18 +74,20 @@ def checkWings(c,img):
             fanframe[cx,cy][i]=sframes
             frames[cx,cy][i].append(img[cy-hy:cy+hy,cx-xw:cx+xw])
     else:
-        for cY in range (cy-10,cy+10):
-            for cX in range (cx-55,cx+55):
+        for cX in range (cx-55,cx+55):
+            for cY in range (cy-10,cy+10):
                 
                 framediff=0
                 if(fanframe.get(tuple([cX,cY])) is not None):
                     while framediff<100:
                         if(i in fanframe.get(tuple([cX,cY]))):
+                            if(cX == 428 and cY == 140):
+                                print("Diff: {}".format(framediff))
                             framediff=sframes-fanframe.get(tuple([cX,cY]))[i]
                         else:
                             break
                         if framediff>=100:
-                            print(i)
+                            
                             i+=1
                         else:
                             break   
@@ -106,10 +110,10 @@ def checkWings(c,img):
                     if(len(frames.get(tuple([cX,cY]))[i])>=20 and foundbee.get(tuple([cX,cY]))[i]==False):
                         print("Fanning Detected")
                         #print("{}, {}".format(cX,cY))
-                        cv2.ellipse(img,ell,(255,0,0),2)
+                        cv2.ellipse(img,ell,(0,255,0),2)
                         foundbee[cX,cY][i]=True
                         numfan+=1
-                    break
+                    return
                 
         if(found==False and cy < 189):
             fanframe[cx,cy][i]=sframes
@@ -131,11 +135,12 @@ def make_vids():
         for key2 in frames[key]:
             f=frames[key][key2]
             height, width, layers = f[0].shape
+            print(len(f))
             if(len(f)>=20 and (width is not 0 and height is not 0)):
-                print(len(f))
+                
                 size = (width,height)
                 out = cv2.VideoWriter()
-                out.open('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/fanning_exports/wings_'+str(key)+", "+str(len(f))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
+                out.open('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/fanning_exports/wings_'+str(key)+", "+str(fanframe[key][key2])+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
                 for fr in f: 
                     out.write(fr)
                 out.release()
