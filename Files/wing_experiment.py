@@ -11,9 +11,9 @@ this program.
 times=0
 numfan=0
 #Video stream used for processing
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/pi4test.mp4")
 #Background image used for initial background subtraction and binary and operations.
-bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/pi4test.png')
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/black.png')
 frames=defaultdict(dict) #Dict for holding the video frames of potentially fanning bees
@@ -166,12 +166,16 @@ while True:
     kernel=np.ones((5,5),np.uint8)
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
     res2 = cv2.bitwise_and(img, img, mask= thresh)
-    
-
+    #Bounds for 60 fps vids
+    #upper = np.array([220,220,220])  
+    #lower = np.array([160,160,160])  
+    #Bounds for 30 fps vids
     upper = np.array([255,255,255])  
     lower = np.array([128,128,128])  
     mask = cv2.inRange(res2, lower, upper)
-    res = cv2.bitwise_and(res2, res2, mask= mask)  
+
+    res = cv2.bitwise_and(res2, res2, mask=mask)
+    
     cv2.imshow('Just_Wings/Shadows',res)
 
     subImage2=(res.astype('int32')-bk2.astype('int32')).clip(0).astype('uint8')
@@ -183,22 +187,25 @@ while True:
     cnt2=[]
     for c in contours1:
         x,y,w,h=cv2.boundingRect(c)
-        if(w*h>150 and w*h < 200 and w > h):
+        r=w/h
+        if(w*h>300 and w > h and w > 25 and w < 53 and h > 10 and h < 30 and r > 1.44 and r < 3.9):
             ell=cv2.fitEllipse(c)
             checkWings(c,img)
             cv2.ellipse(img,ell,(0,255,0),2)
-            #print(w*h)
+            
+            print(w*h,w,h)
+            
         else:
             cnt2.append(c)
         
-    cv2.drawContours(thresh2, cnt2, -1, (0,0,0), cv2.FILLED)
+    #cv2.drawContours(thresh2, cnt2, -1, (0,0,0), cv2.FILLED)
     cv2.putText(img, "Fanning Bees: {}".format(numfan), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4) 
   
     cv2.imshow('Result',img)
 
     cv2.imshow('Thresh',thresh2)
     if times > 0:
-        key=cv2.waitKey(1) & 0xFF
+        key=cv2.waitKey(0) & 0xFF
         #if q is pressed, stop loop
         if key == ord("c"):
             continue
