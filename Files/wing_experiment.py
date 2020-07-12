@@ -11,9 +11,9 @@ this program.
 times=0
 numfan=0
 #Video stream used for processing
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/pi4test.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/60test.h264")
 #Background image used for initial background subtraction and binary and operations.
-bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/pi4test.png')
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/60test.png')
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/black.png')
 frames=defaultdict(dict) #Dict for holding the video frames of potentially fanning bees
@@ -21,6 +21,8 @@ foundbee=defaultdict(dict) #Dict that holds flags cooresponding to wether or not
 fanframe=defaultdict(dict) #Dict that holds the most recent frame number when a particular bee was detected.
 found=False
 sframes=0
+#Only use these cropping bounds in 30 fps vids. This eliminates 
+#areas at top/bottom of frame that never contain fanning.
 bk=bk[100:100+240,0:0+640]
 bk2=bk2[100:100+240,0:0+640]
 
@@ -148,7 +150,7 @@ def make_vids():
 
 
 '''
-This is the main drive loop
+This is the main driver loop
 that iterates through the provided
 video and calls the appropriate functions
 to detect fanning bees.
@@ -158,27 +160,28 @@ while True:
     hasframes,img=vs.read()
     if(hasframes == False):
         break
+    #Again, in 30 fps top and bottom areas  of the frame are removed.
     img=img[100:100+240,0:0+640]
     subImage=(bk.astype('int32')-img.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY)
-    #thresh=255-thresh
     kernel=np.ones((5,5),np.uint8)
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
-    res2 = cv2.bitwise_and(img, img, mask= thresh)
-    #Bounds for 60 fps vids
+    noback = cv2.bitwise_and(img, img, mask= thresh)
+    #Color Bounds for 60 fps vids
     #upper = np.array([220,220,220])  
     #lower = np.array([160,160,160])  
-    #Bounds for 30 fps vids
+
+    #Color Bounds for 30 fps vids
     upper = np.array([255,255,255])  
     lower = np.array([128,128,128])  
-    mask = cv2.inRange(res2, lower, upper)
+    mask = cv2.inRange(noback, lower, upper)
 
-    res = cv2.bitwise_and(res2, res2, mask=mask)
+    wings = cv2.bitwise_and(noback, noback, mask=mask)
     
-    cv2.imshow('Just_Wings/Shadows',res)
+    cv2.imshow('Just_Wings/Shadows',wings)
 
-    subImage2=(res.astype('int32')-bk2.astype('int32')).clip(0).astype('uint8')
+    subImage2=(wings.astype('int32')-bk2.astype('int32')).clip(0).astype('uint8')
     grey2=cv2.cvtColor(subImage2,cv2.COLOR_BGR2GRAY)
     retval2,thresh2=cv2.threshold(grey2,35,255,cv2.THRESH_BINARY)
     kernel2=np.ones((5,5),np.uint8)
@@ -188,17 +191,20 @@ while True:
     for c in contours1:
         x,y,w,h=cv2.boundingRect(c)
         r=w/h
-        if(w*h>300 and w > h and w > 25 and w < 53 and h > 10 and h < 30 and r > 1.44 and r < 3.9):
+        #wing ellipse bounds for 30 fps video 
+        if(w*h>150 and w*h < 200 and w > h):
+        #wing ellipse bounds for 60 fps video (still refining these)
+        #if(w*h>300 and w > h and w > 25 and w < 53 and h > 10 and h < 30 and r > 1.44 and r < 3.9):
             ell=cv2.fitEllipse(c)
             checkWings(c,img)
             cv2.ellipse(img,ell,(0,255,0),2)
             
-            print(w*h,w,h)
+            #print(w*h,w,h)
             
         else:
             cnt2.append(c)
         
-    #cv2.drawContours(thresh2, cnt2, -1, (0,0,0), cv2.FILLED)
+    
     cv2.putText(img, "Fanning Bees: {}".format(numfan), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4) 
   
     cv2.imshow('Result',img)
