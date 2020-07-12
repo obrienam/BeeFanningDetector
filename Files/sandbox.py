@@ -2,14 +2,17 @@ import cv2
 import numpy as np
 from scipy import ndimage
 times=0
-vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/13-21-55.h264")
 bk=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub/BeeFanningDetector/Assets/test_img&videos/black.png')
+fps = vs.get(cv2.CAP_PROP_FPS)
+print(fps)
 while True:
     hasframes,img=vs.read()
     
 
     cv2.imshow("Output", img)
+    '''
     subImage=(bk.astype('int32')-img.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
     retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY)
@@ -48,9 +51,10 @@ while True:
     cv2.drawContours(thresh2, cnt2, -1, (0,0,0), cv2.FILLED)
     cv2.imshow('Result',img)
     cv2.imshow('Thresh',thresh2)
-    print("")
+    '''
+    
     if times > 0:
-        key=cv2.waitKey(0) & 0xFF
+        key=cv2.waitKey(1) & 0xFF
         #if q is pressed, stop loop
         if key == ord("c"):
             continue
