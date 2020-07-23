@@ -82,8 +82,6 @@ def checkWings(c,img):
                 if(fanframe.get(tuple([cX,cY])) is not None):
                     while framediff<100:
                         if(i in fanframe.get(tuple([cX,cY]))):
-                            if(cX == 428 and cY == 140):
-                                print("Diff: {}".format(framediff))
                             framediff=sframes-fanframe.get(tuple([cX,cY]))[i]
                         else:
                             break
@@ -136,7 +134,6 @@ def make_vids():
         for key2 in frames[key]:
             f=frames[key][key2]
             height, width, layers = f[0].shape
-            print(len(f))
             if(len(f)>=20 and (width is not 0 and height is not 0)):
                 
                 size = (width,height)
