@@ -1,260 +1,223 @@
 import cv2
 import numpy as np
-import time
-import random as rng
-d_frames={}
-rects={}
-ellipses=[]
-times = 0
-#convert input frame to threshold using background subtraction
-def to_thresh(img,bk):
+from collections import defaultdict
+
+'''
+Variables that are important for
+this program.
+'''
+
+times=0
+numfan=0
+#Video stream used for processing
+vs=cv2.VideoCapture("/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
+#Background image used for initial background subtraction and binary and operations.
+bk=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
+#Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
+bk2=cv2.imread('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/black.png')
+frames=defaultdict(dict) #Dict for holding the video frames of potentially fanning bees
+foundbee=defaultdict(dict) #Dict that holds flags cooresponding to wether or not a fanning bee was found at a particular spot
+fanframe=defaultdict(dict) #Dict that holds the most recent frame number when a particular bee was detected.
+found=False
+sframes=0
+#Only use these cropping bounds in 30 fps vids. This eliminates 
+#areas at top/bottom of frame that never contain fanning.
+bk=bk[100:100+240,0:0+640]
+bk2=bk2[100:100+240,0:0+640]
+
+'''
+This function is given a wing contour and
+frame image, and determines wether or not 
+the cooresponding bee is fanning.
+'''
+def checkWings(c,img):
+    global numfan
+    global frames
+    global foundbee
+    global sframes
+    global fanframe
+    i=0
+    (x,y),(ma,Ma),angle=cv2.fitEllipse(c)
+    x2,y2,w,h=cv2.boundingRect(c)
+    ell=cv2.fitEllipse(c)
+    found=False
+    mom=cv2.moments(c)
+    hy=0
+    xw=0
+    cx = int(mom["m10"] / mom["m00"])
+    cy = int(mom["m01"] / mom["m00"])
+    if(cy>100):
+        hy=100
+    else:
+        hy=50
+    if(cx>100):
+        xw=100
+    else:
+        xw=50
+    #height, width, layers = img.shape
+    if(frames.get(tuple([cx,cy])) is not None and i in frames.get(tuple([cx,cy]))):
+        framediff=0
+        if(fanframe.get(tuple([cx,cy])) is not None):
+            while framediff<100:
+                if(i in fanframe.get(tuple([cx,cy]))):
+                    framediff=sframes-fanframe.get(tuple([cx,cy]))[i]
+                    if(cx == 428 and cy == 140):
+                        print("Diff: {}".format(framediff))
+                else:
+                    break
+                if framediff>=100:
+                    
+                    i+=1
+                else:
+                    break
+        if(i in fanframe.get(tuple([cx,cy]))):
+            #hy, xw, layers = frames[cx,cy][i][0].shape
+            fanframe[cx,cy][i]=sframes
+            frames[cx,cy][i].append(img[cy-hy:cy+hy,cx-xw:cx+xw])
+    else:
+        for cX in range (cx-55,cx+55):
+            for cY in range (cy-10,cy+10):
+                
+                framediff=0
+                if(fanframe.get(tuple([cX,cY])) is not None):
+                    while framediff<100:
+                        if(i in fanframe.get(tuple([cX,cY]))):
+                            if(cX == 428 and cY == 140):
+                                print("Diff: {}".format(framediff))
+                            framediff=sframes-fanframe.get(tuple([cX,cY]))[i]
+                        else:
+                            break
+                        if framediff>=100:
+                            
+                            i+=1
+                        else:
+                            break   
+                        
+                
+                if(frames.get(tuple([cX,cY])) is not None and i in frames.get(tuple([cX,cY]))):
+                    #print("{},{}".format(cx,cy))
+                    #hy, xw, layers = frames[cX,cY][i][0].shape
+                    if(cY>100):
+                        hy=100
+                    else:
+                        hy=50
+                    if(cX>100):
+                        xw=100
+                    else:
+                        xw=50
+                    frames[cX,cY][i].append(img[cY-hy:cY+hy,cX-xw:cX+xw])
+                    fanframe[cX,cY][i]=sframes
+                    found=True
+                    if(len(frames.get(tuple([cX,cY]))[i])>=20 and foundbee.get(tuple([cX,cY]))[i]==False):
+                        print("Fanning Detected")
+                        #print("{}, {}".format(cX,cY))
+                        cv2.ellipse(img,ell,(0,255,0),2)
+                        foundbee[cX,cY][i]=True
+                        numfan+=1
+                    return
+                
+        if(found==False and cy < 189):
+            fanframe[cx,cy][i]=sframes
+            frames[cx,cy][i]=[img[cy-hy:cy+hy,cx-xw:cx+xw]]
+            foundbee[cx,cy][i]=False
+
+
+'''
+This function iterates through every entry
+in the frames dictionary and exports 
+videos frames for entries with atleast 
+20 frames. Videos can be found in the fanning_exports
+directory.
+'''
+def make_vids():
+    i = 0
+    global frames
+    for key in frames:
+        for key2 in frames[key]:
+            f=frames[key][key2]
+            height, width, layers = f[0].shape
+            print(len(f))
+            if(len(f)>=20 and (width is not 0 and height is not 0)):
+                
+                size = (width,height)
+                out = cv2.VideoWriter()
+                out.open('/Users/aidanobrien/Documents/GitHub.nosync/BeeFanningDetector/Assets/fanning_exports/wings_'+str(key)+", "+str(fanframe[key][key2])+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
+                for fr in f: 
+                    out.write(fr)
+                out.release()
+                i=i+1
+
+
+'''
+This is the main driver loop
+that iterates through the provided
+video and calls the appropriate functions
+to detect fanning bees.
+'''
+while True:
+    sframes+=1
+    hasframes,img=vs.read()
+    if(hasframes == False):
+        break
+    #Again, in 30 fps top and bottom areas  of the frame are removed.
+    img=img[100:100+240,0:0+640]
     subImage=(bk.astype('int32')-img.astype('int32')).clip(0).astype('uint8')
     grey=cv2.cvtColor(subImage,cv2.COLOR_BGR2GRAY)
-    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY_INV)
-    thresh=255-thresh
+    retval,thresh=cv2.threshold(grey,35,255,cv2.THRESH_BINARY)
     kernel=np.ones((5,5),np.uint8)
     thresh=cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel)
-    return thresh
+    noback = cv2.bitwise_and(img, img, mask= thresh)
+    #Color Bounds for 60 fps vids
+    #upper = np.array([220,220,220])  
+    #lower = np.array([160,160,160])  
+    cv2.imshow('noback',noback)
+    #Color Bounds for 30 fps vids
+    upper = np.array([255,255,255])  
+    lower = np.array([128,128,128])  
+    mask = cv2.inRange(noback, lower, upper)
 
-#Compare the area, central point, shape, and ellipse angle
-#of two contours to determine if the stationary bee in the contours is fanning.
-def checkFanning(frame,c1,c2):
+    wings = cv2.bitwise_and(noback, noback, mask=mask)
     
-    match=cv2.matchShapes(c1,c2,cv2.CONTOURS_MATCH_I1,0.0)
+    cv2.imshow('Just_Wings/Shadows',wings)
 
-    #Compute center coordinate of the contours
-    mom1=cv2.moments(c1)
-    cx1 = int(mom1["m10"] / mom1["m00"])
-    cy1 = int(mom1["m01"] / mom1["m00"])
-    mom2=cv2.moments(c2)
-    cx2 = int(mom2["m10"] / mom2["m00"])
-    cy2 = int(mom2["m01"] / mom2["m00"])
-    #Compare the center coordinates of the two contours
-    cx=cx1/cx2
-    cy=cy1/cy2
-    #Compare the areas of the two contours
-    a1=cv2.contourArea(c1)
-    a2=cv2.contourArea(c2)
-    a=a1/a2
-    detected=False
-
-    #Check if the two contours "match"
-    if (cx <= 1.0 and cx >= 0.95 and cy <= 1.0 and cy >= 0.95 
-        and a <= 1.0 and a >= 0.95 and a1 < 10000 and match <= 0.3):
-        #Draw an ellipse around the contour
-        eframe=frame.copy()
-        ell=cv2.fitEllipse(c1)
-        (x,y),(ma,Ma),angle=cv2.fitEllipse(c1)
-        cv2.ellipse(eframe,ell,(0,255,0),2)
-
-        #Check for an existing ellipse near by in the hive. 
-        #If found, append frame to dictionary entry at the
-        #nearby location.
-        for cX in range(cx1-20,cx1+20):
-            for cY in range(cy1-55,cy1+55):
-                
-                if(d_frames.get(tuple([cX,cY])) is not None): #and 
-                #(Ma>=42 and Ma<=49)and ma/Ma>=1.6 and ma/Ma<=2.1 and 
-                #(angle >125 or angle <90) and cY>100):
-                    print(angle)
-                    print(ma,Ma)
-                    x,y,w,h=rects.get(tuple([cX,cY]))
-                    #cv2.drawContours(frame, c1, -1, (0,255,0), 3)
-                   
-                    eframe=eframe[y:y+h,x:x+w]
-                    ellipses.append(ell)
-                    d_frames[cX,cY].append(eframe)
-                    #time.sleep(0.5)
-                    return True
-        #If ellipse isn't found nearby, insert frame to frame dictionary.
-        if(d_frames.get(tuple([cx1,cy1])) is None and detected==False
-        and (ma>=30 and ma<=55 and ((Ma>=70 and Ma<=80)or(Ma>=140 and Ma<=160)or(Ma>=210 and Ma<=240))) and (angle > 110 or (angle < 70 and angle > 20))):#or(ma>=50 and ma<=63 and Ma>=190 and Ma<=205)) 
-        #and cy1>100):
-            #print("recognized" + str(cx1))
-            print(angle)
-            print(cx1,cy1)
-            print(ma,Ma)
-            #time.sleep(0.5)
-            x,y,w,h=cv2.boundingRect(c1)
-            hy=0
-            xw=0
-            if(y>55):
-                hy=55
-            else:
-                hy=y/2
-            if(x>20):
-                xw=20
-            else:
-                xw=x/2
-            eframe=eframe[y-hy:y+h+55,x-xw:x+w+20]
-            ellipses.append(ell)  
-            d_frames[cx1,cy1]=[eframe]
-            rects[cx1,cy1]=[x-xw,y-hy,w+xw+20,h+hy+55]
-            return True
+    subImage2=(wings.astype('int32')-bk2.astype('int32')).clip(0).astype('uint8')
+    grey2=cv2.cvtColor(subImage2,cv2.COLOR_BGR2GRAY)
+    retval2,thresh2=cv2.threshold(grey2,35,255,cv2.THRESH_BINARY)
+    kernel2=np.ones((5,5),np.uint8)
+    thresh2=cv2.morphologyEx(thresh2,cv2.MORPH_OPEN,kernel)
+    im2, contours1, hierarchy1 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    cnt2=[]
+    for c in contours1:
+        x,y,w,h=cv2.boundingRect(c)
+        r=w/h
+        #wing ellipse bounds for 30 fps video 
+        if(w*h>150 and w*h < 200 and w > h):
+        #wing ellipse bounds for 60 fps video (still refining these)
+        #if(w*h>300 and w > h and w > 25 and w < 53 and h > 10 and h < 30 and r > 1.44 and r < 3.9):
+            ell=cv2.fitEllipse(c)
+            checkWings(c,img)
+            cv2.ellipse(img,ell,(0,255,0),2)
+            
+            #print(w*h,w,h)
+            
+        else:
+            cnt2.append(c)
+        
     
-    return False
-
-#remove moving/not fanning bees from threshold frame
-#and detect any of the fanning bees frames
-def rem_movement(im,thresh,cnt1,cnt2):
-    #loop through first conotur list
-    numFan=0
-    cntmoving=[]
-    global ellipses
-    ellipses=[]
-    imc=im
-    numMatch=0
-    for c1 in cnt1:
-        found=False
-        #loop through second contour list
-        for c2 in cnt2:
-            #check if bee was stationary and was in the 
-            #size range of a staionary bee
-            imc=im.copy() 
-            if c1.size>440 and checkFanning(im,c1,c2):
-                found=True
-                numMatch+=1
-        if(found==False):
-            #if not found, append it to moving contours
-            cntmoving.append(c1)
-    if(numMatch>0 and len(ellipses)>0):
-        cframe=im.copy()
+    cv2.putText(img, "Fanning Bees: {}".format(numfan), (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4) 
   
-        for e in ellipses:
-            cv2.ellipse(cframe,e,(0,255,0),2)
-        cv2.imshow("Ellipse",cframe)
-        
-        
-    #fill contours that moved with white
-    cv2.drawContours(thresh, cntmoving, -1, (0,0,0), -1)
-    return thresh,numFan,imc
+    cv2.imshow('Result',img)
 
-#function for exporting fanning bee frames from dictionary
-#into seperate videos.
-def make_vids(d_frames):
-    i = 0
-    for key in d_frames:
-        print(key)
-        frames=d_frames[key]
-        print(len(frames))
-        height, width, layers = frames[0].shape
-        print(width,height)
-        if(len(frames)>=15 and (width is not 0 and height is not 0)):
-            size = (width,height)
-            out = cv2.VideoWriter()
-            out.open('/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/fanning_exports/fan_'+str(key)+", "+str(len(frames))+'.mov',cv2.VideoWriter_fourcc(*'mp4v'), 10, (size),True)
-            for f in frames:
-                
-                out.write(f)
-            out.release()
-            i=i+1
-'''
-Experimental watershed function
-def wshed(image,bk):
-    conts=[]
-    shifted=cv2.pyrMeanShiftFiltering(image,21,51)
-    gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 0, 255,
-        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    thresh=255-thresh
-    cv2.imshow("Thresh", thresh)
-
-    D = ndimage.distance_transform_edt(thresh)
-    localMax = peak_local_max(D, indices=False, min_distance=20,
-        labels=thresh)
-
-    markers = ndimage.label(localMax, structure=np.ones((3, 3)))[0]
-    labels = watershed(-D, markers, mask=thresh)
-
-    for label in np.unique(labels):
-        
-        # if the label is zero, we are examining the 'background'
-        # so simply ignore it
-        if label == 0:
+    cv2.imshow('Thresh',thresh2)
+    if times > 0:
+        key=cv2.waitKey(1) & 0xFF
+        #if q is pressed, stop loop
+        if key == ord("c"):
             continue
-        # otherwise, allocate memory for the label region and draw
-        # it on the mask
-        mask = np.zeros(gray.shape, dtype="uint8")
-        mask[labels == label] = 255
-        # detect contours in the mask and grab the largest one
-        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
-        c = max(cnts, key=cv2.contourArea)
-        conts.append(c)
-    return conts
-'''
-#main driver function
-def main():
-    #windows video file path
-    #vs=cv2.VideoCapture("C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/test_vid2.mp4")
-    #mac video file path
-    vs=cv2.VideoCapture("/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid1.mp4")
-    img1=None
-
-    #loop through video frames 
-    while True:
-        global times
-        hasFrames,img2=vs.read()
-        if (hasFrames==False):
+        if key == ord("q"):
             break
-        
-        if img1 is not None:
-            #mac file path
-            bk=cv2.imread('/Users/dabokbleef/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
-            #bk=cv2.imread('C:/Users/obrienam/Documents/GitHub/BeeFanningDetector/Assets/testbkgrd1.jpg')
-            
-            #crop bk and image frame to appropriate 
-            #region of interest
-            #ROI for new setup
-            #bk=bk[175:175+230,0:0+640]
-            #img2=img2[175:175+230,0:0+640]
-            #ROI for old setup
-            bk=bk[100:100+240,0:0+640]
-            img2=img2[100:100+240,0:0+640]
-            #take first threshold
-            thresh1=to_thresh(img1,bk)
-            
-            #find first set of frame contours
-            im2, contours1, hierarchy1 = cv2.findContours(thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-            #cv2.drawContours(img1, contours1, -1, (0,255,0), 3)
-            
-            #find second threshold
-            thresh2=to_thresh(img2,bk)
-            #find second set of frame contours
-            im3, contours2, hierarchy2 = cv2.findContours(thresh2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-            #remove contours of moving/non-fanning bees and detect fanning bee frames
-            thresh1,curFan,imc=rem_movement(img1,thresh1,contours1,contours2)
-            
-
-            #display treshold and video frames
-            cv2.imshow("threshold",thresh1)
-            cv2.imshow("vid_feed",img1)
-            
-            #increment img2
-            img1=img2
-        else:    
-            img1=img2
-            #ROI for new setup
-            #img1=img1[175:175+230,0:0+640]
-            #ROI for old setup
-            img1=img1[100:100+240,0:0+640]
-        if times > 0:
-            key=cv2.waitKey(1) & 0xFF
-            #if q is pressed, stop loop
-            if key == ord("c"):
-                continue
-            if key == ord("q"):
-                break
-        times = times + 1
-        #time.sleep(0.5)
-    #export frames of fanning bees into seperate videos.
-    #these are found in assets/fanning_exports
-    make_vids(d_frames)
-    #close all windows and video stream    
-    vs.release()
-    cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    main()
+    times = times + 1
+vs.release()
+cv2.destroyAllWindows()
+make_vids()
+    

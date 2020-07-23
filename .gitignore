@@ -1,2 +1,8 @@
+<<<<<<< HEAD
 
 Assets/.DS_Store
+=======
+#Ignore these type of files:
+*.DS_Store
+
+>>>>>>> 3dc2f95145c9aef04655f2a380292f0a239501f5
