@@ -13,10 +13,10 @@ times=0
 numfan=0
 
 #Video stream used for processing
-vs = cv2.VideoCapture("/Users/williebees/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid16.h264")
+vs = cv2.VideoCapture("/Users/williebees/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_vid4.mp4")
 
 #Background image used for initial background subtraction and binary and operations.
-bk = cv2.imread('/Users/williebees/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/test_bk8.png')
+bk = cv2.imread('/Users/williebees/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/testbkgrd1.jpg')
 
 #Background image used for secont background subtraction and binary and operations. This is used to detect the wings.
 bk2 = cv2.imread('/Users/williebees/Documents/GitHub.nosync/BeeFanningDetector/Assets/test_img&videos/black.png')
